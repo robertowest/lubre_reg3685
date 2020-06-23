@@ -8,4 +8,5 @@ pylint
 #########################################
 ### Paquetes correspondientes al proyecto
 ##
+python-dateutil
 unidecode
