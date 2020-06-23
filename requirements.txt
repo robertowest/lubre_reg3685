@@ -1,0 +1,11 @@
+####################################################
+### Paquetes necesarios para entorno python y vscode
+##
+wheel
+pylint
+
+
+#########################################
+### Paquetes correspondientes al proyecto
+##
+unidecode
