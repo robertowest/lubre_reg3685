@@ -21,7 +21,6 @@ class Ventas:
         self.total = 0
 
     def __str__(self):
-        self.recalcular()
         linea = [
             self.fecha,
             self.comprobante,
@@ -266,19 +265,5 @@ class Ventas:
             linea1.append("0005")
             linea1.append(self.iva21)
             lineas.append("|".join(linea1))
-
-        if self.__iva10 != 0:
-            linea2 = self.__define_linea_iva()
-            linea2.append(self.__valor_iva(self.__iva10, .10, 15))
-            linea2.append("0004")
-            linea2.append(self.iva10)
-            lineas.append("|".join(linea2))
-
-        if self.__iva27 != 0:
-            linea3 = self.__define_linea_iva()
-            linea3.append(self.__valor_iva(self.__iva27, .27, 15))
-            linea3.append("0006")
-            linea3.append(self.iva27)
-            lineas.append("|".join(linea3))
 
         return lineas
