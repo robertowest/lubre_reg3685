@@ -2,24 +2,27 @@ import csv, operator
 import datetime
 
 from script.comunes.progressbar import lines_in_file, update_progress
-from script.afip import afip
+from script.afip.compras import Compras
 
 RUTA = '/home/roberto/Programacion/python/reg3685'
 ARCHIVO = RUTA + '/datos/lubre_compras.csv'
 ARCH_COMPRA = RUTA + '/salida/lubre_01_compras.txt'
 ARCH_ALICUOTA = RUTA + '/salida/lubre_02_compras_ali.txt'
-ERROR = RUTA + '/salida/error.log'
+LOG_ERROR = RUTA + '/salida/error.log'
 
 def procesar(p_anio, p_mes):
     print("leyendo archivo compras_lubre.csv")
-    open(ERROR, 'a').close()
+    open(LOG_ERROR, 'a').close()
 
     LINEAS = lines_in_file(ARCHIVO)
     LINEA = 0
+    TOTAL = 0
+    IVA = 0
+    ERRORES = 0
 
     file1 = open(ARCH_COMPRA, 'w', encoding='ascii')
     file2 = open(ARCH_ALICUOTA, 'w', encoding='ascii')
-    log = open(ERROR, 'w')
+    log = open(LOG_ERROR, 'w')
 
     with open(ARCHIVO, 'r', encoding='utf8') as csvarchivo:    
         # FECHA;TIPOCOMPROB;LETRA;TERMINAL;NUMERO;RAZON;IVA;CUIT;
@@ -56,11 +59,11 @@ def procesar(p_anio, p_mes):
                 # comprobamos que la fecha sea válida y que esté en el mes correcto
                 reg['FECHA'] = str_to_date(reg['FECHA'], p_mes, p_anio)
 
-                compra = afip.Compras(reg['FECHA'], reg['TIPOCOMPROB'] + reg['LETRA'], 
-                                      reg['TERMINAL'], reg['NUMERO'])
+                compra = Compras(reg['FECHA'], reg['TIPOCOMPROB'] + reg['LETRA'], 
+                                 reg['TERMINAL'], reg['NUMERO'])
                 compra.cuit = reg['CUIT']
                 compra.nombre = reg['RAZON']
-                compra.neto = reg['GRAVADO']
+                compra.gravado = reg['GRAVADO']
                 compra.no_gravado = reg['NOGRAVADO']
                 compra.iva21 = reg['IVA21']
                 compra.iva10 = reg['IVA10_5']
@@ -70,11 +73,14 @@ def procesar(p_anio, p_mes):
                 compra.total = reg['TOTAL']
             
                 file1.write(str(compra).replace('|', '') + '\n')
+                TOTAL += reg['TOTAL']
                 for linea in compra.lineas_alicuotas():
                     file2.write(linea.replace('|', '') + '\n')
+                    IVA += reg['IVA21'] + reg['IVA10_5'] + reg['IVA27']
 
-            except:
-                log.write('Error al procesar la factura de compras Nº %s (%s)' % (reg['IDFACPROVEDOR'], reg['NUMERO']) + '\n')
+            except Exception as e:
+                log.write('IdFacProveedor %s - %s \n' % (reg['IDFACPROVEDOR'], str(e)))
+                ERRORES += 1
 
             LINEA += 1
             update_progress("procesando ", LINEA/LINEAS)
@@ -83,6 +89,18 @@ def procesar(p_anio, p_mes):
     file2.close()
     log.close()
     update_progress("procesando ", 1)
+
+    if ERRORES == 0:
+        # '{:15,.2f}'.format(num).replace(',', '_').replace('.', ',').replace('_', '.')
+        print('Total      : ' + '{:15,.2f}'.format(TOTAL))
+        print('Total IVA  : ' + '{:15,.2f}'.format(IVA))
+    else:
+        if ERRORES == 1:
+            print('Se encontró 1 error')
+        else:
+            print('Se encontraron {} errores'.format(ERRORES))
+        print('Revise el log de errores {}'.format(LOG_ERROR))
+    input("Pulse [enter] tecla para continuar ...")
 
 
 def str_to_date(date_text, p_month, p_year):

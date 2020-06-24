@@ -10,7 +10,7 @@ class Compras:
         self.numero = numero
         self.cuit = ''
         self.nombre = ''
-        self.neto = 0
+        self.gravado = 0
         self.no_gravado = 0
         self.iva21 = 0
         self.iva10 = 0
@@ -22,7 +22,6 @@ class Compras:
         self.__alicuotas = 0
 
     def __str__(self):
-        self.recalcular()
         linea = [
             self.fecha,
             self.comprobante,
@@ -105,6 +104,8 @@ class Compras:
 
     @property
     def terminal(self):
+        if self.__terminal == '0':
+            self.__terminal = '1'
         return str(self.__terminal).rjust(5, '0')
 
     @terminal.setter
@@ -139,15 +140,15 @@ class Compras:
         self.__nombre = valor[0:30]
 
     @property
-    def neto(self):
-        return format(abs(self.__neto), '.2f').replace(".", "").rjust(15, '0')
+    def gravado(self):
+        return format(abs(self.__gravado), '.2f').replace(".", "").rjust(15, '0')
 
-    @neto.setter
-    def neto(self, valor):
+    @gravado.setter
+    def gravado(self, valor):
         if type(valor) == str:
-            self.__neto = round(float(valor), 2)
+            self.__gravado = round(float(valor), 2)
         else:
-            self.__neto = round(valor, 2)
+            self.__gravado = round(valor, 2)
 
     @property
     def no_gravado(self):
@@ -253,33 +254,27 @@ class Compras:
         self.__alicuotas = valor
 
     def recalcular(self):
-        neto = self.__neto
-        iva = self.__iva21 + self.__iva10 + self.__iva27
-        otros = self.__p_ibb + self.__p_iva + self.__itc
-        total = self.__total
+        suma = round(self.__gravado + self.__no_gravado + \
+                     self.__iva21 + self.__iva10 + self.__iva27 + \
+                     self.__p_ibb + self.__p_iva + self.__itc, 2)
+        if (self.__total - suma) != 0:
+            total = self.__total
+            iva = self.__iva21 + self.__iva10 + self.__iva27
+            otros = self.__p_ibb + self.__p_iva + self.__itc
 
-        # calculamos el neto en función de los impuestos
-        neto_ok = round(self.__iva21 / .21, 2) + \
-                  round(self.__iva10 / .105, 2) + \
-                  round(self.__iva27 / .27, 2)
-        no_gravado = neto - neto_ok
-        
-        if no_gravado != 0:
-            if (total > 0 and no_gravado < 0) or (total < 0 and no_gravado > 0):
-                # si no_gravado es diferente signo del total, recalcular en función de alicuotas
-                neto = round(self.__iva21 / .21, 2) + \
-                       round(self.__iva10 / .105, 2) + \
-                       round(self.__iva27 / .27, 2)
-                self.__no_gravado = 0
-                self.__neto = neto
-                self.__total = neto + iva + otros
-
-            elif abs(no_gravado) > 1:
-                self.__no_gravado = no_gravado
-
-            else:
-                self.__neto = neto - no_gravado
-                self.__no_gravado = 0
+            # calculamos el gravado en función de los impuestos
+            gravado = round(self.__iva21 / .21, 2) + \
+                      round(self.__iva10 / .105, 2) + \
+                      round(self.__iva27 / .27, 2)
+            no_gravado = total - (gravado + iva + otros)
+            
+            if no_gravado != 0:
+                if abs(no_gravado) > 1:
+                    self.__no_gravado = no_gravado
+                else:
+                    # si son decimales los quitamos del gravado
+                    self.gravado = gravado - no_gravado
+                    self.__no_gravado = 0
 
     # alicuotas
     def __define_linea_iva(self):
@@ -322,17 +317,18 @@ class Compras:
         return lineas
 
 
-# c = Compras('1/3/20', 'FACA', 101, 1245)
-# c.cuit = '30-71005185-9'
-# c.nombre = 'EDUARDO MARCELO ACUNA'
-# c.neto = 3010
-# c.iva21 = 210
-# c.iva10 = 105
-# c.iva27 = 270
-# c.p_ibb = 200
-# c.p_iva = 100
-# c.total = 3900
+if __name__ == "__main__":
+    c = Compras('1/3/20', 'FACA', 101, 1245)
+    c.cuit = '30-71005185-9'
+    c.nombre = 'EDUARDO MARCELO ACUNA'
+    c.gravado = 27123.03
+    c.iva21 = 4733.93
+    c.iva10 = 1174.91
+    c.iva27 = 0
+    c.p_ibb = 474.65
+    c.p_iva = 806.83
+    c.total = 34313.35
 
-# print( c )
-# for linea in c.lineas_alicuotas():
-#     print( linea )
+    print( c )
+    for linea in c.lineas_alicuotas():
+        print( linea )

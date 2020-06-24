@@ -42,7 +42,9 @@ if __name__ == "__main__":
             # input("continuar ...")
 
         elif opcionMenu == "2":
-            pass
+            os.system('clear')
+            from script.lubre import ventas
+            ventas.procesar(ANIO, MES)
 
         elif opcionMenu == "3":
             pass
