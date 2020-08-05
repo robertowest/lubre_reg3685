@@ -181,6 +181,7 @@ dmypy.json
 
 ### Mis Configuraciones ###
 .env/
+.idea/
 .vscode/
 *.bak
 *.tar.gz
