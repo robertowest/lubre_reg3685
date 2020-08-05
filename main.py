@@ -13,12 +13,13 @@ def menu():
     print("1 - Compras")
     print("2 - Ventas")
     print("")
-    # print("----------- DEBO -----------------")
+    print("----------- DEBO -----------------")
     # print("x - Borrar tablas")
     # print("x - Cargar archivos de ventas")
     # print("x - Limpiar ventas y alícuotas")
     # print("x - Generar archivos de ventas")
-    # print("")
+    print("4 - Ventas")
+    print("")
     print("0 - Salir")
     print("")
 
@@ -50,7 +51,9 @@ if __name__ == "__main__":
             pass
 
         elif opcionMenu == "4":
-            pass
+            os.system('clear')
+            from script.debo import ventas
+            ventas.procesar(ANIO, MES)
 
         elif opcionMenu == "0":
             break

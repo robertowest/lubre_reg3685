@@ -72,6 +72,7 @@ class Ventas:
             'FACB': '006',
             'FACC': '011',
             'LSGA': '090',
+            'LPRA': '003',
             'NCRA': '003',
             'NCRB': '008',
             'NCRC': '013',
@@ -79,6 +80,8 @@ class Ventas:
             'NDEB': '007',
             'NDEC': '012',
             # comprobantes DEBO
+            'CIA': '111',
+            'CIB': '222',
             'FTA': '001',
             'FTB': '006',
             'FTC': '011',
@@ -88,9 +91,9 @@ class Ventas:
             'NCA': '003',
             'NCB': '008',
             'NCC': '013',
-            'CIA': '111',
-            'CIB': '222',
             'RER': '333',
+            'TIA': '081',
+            'TIB': '082',
         }
         return swiiher.get(self.__comprobante, "FACA")        
 
@@ -247,9 +250,7 @@ class Ventas:
         return [
             self.comprobante,
             self.terminal,
-            self.numero,
-            "80",
-            self.cuit
+            self.numero
         ]
 
     def __valor_iva(self, iva, porcentaje, largo):
@@ -257,6 +258,7 @@ class Ventas:
         return format(neto, '.2f').replace(".", "").rjust(largo, '0')
 
     def lineas_alicuotas(self):
+        # 002-00050-00000000000000000002-000000000413223-0005-000000000086777
         lineas = []
 
         if self.__iva21 != 0:
