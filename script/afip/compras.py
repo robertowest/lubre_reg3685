@@ -253,28 +253,46 @@ class Compras:
     def alicuotas(self, valor):
         self.__alicuotas = valor
 
-    def recalcular(self):
-        suma = round(self.__gravado + self.__no_gravado + \
-                     self.__iva21 + self.__iva10 + self.__iva27 + \
-                     self.__p_ibb + self.__p_iva + self.__itc, 2)
-        if (self.__total - suma) != 0:
-            total = self.__total
-            iva = self.__iva21 + self.__iva10 + self.__iva27
-            otros = self.__p_ibb + self.__p_iva + self.__itc
+    # def recalcular(self):
+    #     suma = round(self.__gravado + self.__no_gravado + \
+    #                  self.__iva21 + self.__iva10 + self.__iva27 + \
+    #                  self.__p_ibb + self.__p_iva + self.__itc, 2)
+    #     if (self.__total - suma) != 0:
+    #         total = self.__total
+    #         iva = self.__iva21 + self.__iva10 + self.__iva27
+    #         otros = self.__p_ibb + self.__p_iva + self.__itc
 
-            # calculamos el gravado en función de los impuestos
-            gravado = round(self.__iva21 / .21, 2) + \
-                      round(self.__iva10 / .105, 2) + \
-                      round(self.__iva27 / .27, 2)
-            no_gravado = total - (gravado + iva + otros)
+    #         # calculamos el gravado en función de los impuestos
+    #         gravado = round(self.__iva21 / .21, 2) + \
+    #                   round(self.__iva10 / .105, 2) + \
+    #                   round(self.__iva27 / .27, 2)
+    #         no_gravado = total - (gravado + iva + otros)
             
-            if no_gravado != 0:
-                if abs(no_gravado) > 1:
-                    self.__no_gravado = no_gravado
-                else:
-                    # si son decimales los quitamos del gravado
-                    self.gravado = gravado - no_gravado
-                    self.__no_gravado = 0
+    #         if no_gravado != 0:
+    #             if abs(no_gravado) > 1:
+    #                 self.__no_gravado = no_gravado
+    #             else:
+    #                 # si son decimales los quitamos del gravado
+    #                 self.gravado = gravado - no_gravado
+    #                 self.__no_gravado = 0
+
+    def recalcular(self):
+        # calculamos el gravado en función de los impuestos
+        gravado = round(self.__iva21 / .21, 2) + \
+                  round(self.__iva10 / .105, 2) + \
+                  round(self.__iva27 / .27, 2)
+        iva = round(self.__iva21 + self.__iva10 + self.__iva27, 2)
+        otros = self.__p_ibb + self.__p_iva + self.__itc
+        total = self.__total
+        no_gravado = total - (gravado + iva + otros)
+
+        if no_gravado != 0:
+            if abs(no_gravado) > 1:
+                self.__no_gravado = no_gravado
+            else:
+                # si son decimales los quitamos del gravado
+                self.gravado = gravado - no_gravado
+                self.__no_gravado = 0
 
     # alicuotas
     def __define_linea_iva(self):

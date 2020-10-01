@@ -32,51 +32,33 @@ def procesar(p_anio, p_mes):
         entrada = csv.DictReader(csvarchivo, delimiter=';', quoting=csv.QUOTE_NONE)
         for reg in entrada:
             try:
-                # validaciones
-                reg['IVA21'] = round(float(reg['IVA21'].replace(",",".")), 2)
-                reg['IVA27'] = round(float(reg['IVA27'].replace(",",".")), 2)
-                reg['IVA10_5'] = round(float(reg['IVA10_5'].replace(",",".")), 2)
+                if registro_valido(reg):
+                    # comprobamos que la fecha sea válida y que esté en el mes correcto
+                    reg['FECHA'] = str_to_date(reg['FECHA'], p_mes, p_anio)
 
-                # sino tiene iva lo descartamos
-                ALICUOTAS = 0
-                if (reg['IVA21'] != 0):
-                    ALICUOTAS += 1
-                if (reg['IVA27'] != 0):
-                    ALICUOTAS += 1
-                if (reg['IVA10_5'] != 0):
-                    ALICUOTAS += 1
-                if ALICUOTAS == 0:
-                    LINEA += 1
-                    continue
+                    compra = Compras(reg['FECHA'], reg['TIPOCOMPROB'] + reg['LETRA'], 
+                                    reg['TERMINAL'], reg['NUMERO'])
+                    compra.cuit = reg['CUIT']
+                    compra.nombre = reg['RAZON']
+                    compra.gravado = reg['GRAVADO']
+                    compra.no_gravado = reg['NOGRAVADO']
+                    compra.iva21 = reg['IVA21']
+                    compra.iva10 = reg['IVA10_5']
+                    compra.iva27 = reg['IVA27']
+                    compra.p_ibb = reg['PERC_IB']
+                    compra.p_iva = reg['PERC_IVA']
+                    compra.total = reg['TOTAL']
 
-                # redondeamos los valores
-                reg['GRAVADO'] = round(float(reg['GRAVADO'].replace(",",".")), 2)
-                reg['NOGRAVADO'] = round(float(reg['NOGRAVADO'].replace(",",".")), 2)
-                reg['PERC_IB'] = round(float(reg['PERC_IB'].replace(",",".")), 2)
-                reg['PERC_IVA'] = round(float(reg['PERC_IVA'].replace(",",".")), 2)
-                reg['TOTAL'] = round(float(reg['TOTAL'].replace(",",".")), 2)
-
-                # comprobamos que la fecha sea válida y que esté en el mes correcto
-                reg['FECHA'] = str_to_date(reg['FECHA'], p_mes, p_anio)
-
-                compra = Compras(reg['FECHA'], reg['TIPOCOMPROB'] + reg['LETRA'], 
-                                 reg['TERMINAL'], reg['NUMERO'])
-                compra.cuit = reg['CUIT']
-                compra.nombre = reg['RAZON']
-                compra.gravado = reg['GRAVADO']
-                compra.no_gravado = reg['NOGRAVADO']
-                compra.iva21 = reg['IVA21']
-                compra.iva10 = reg['IVA10_5']
-                compra.iva27 = reg['IVA27']
-                compra.p_ibb = reg['PERC_IB']
-                compra.p_iva = reg['PERC_IVA']
-                compra.total = reg['TOTAL']
-            
-                file1.write(str(compra).replace('|', '') + '\n')
-                TOTAL += reg['TOTAL']
-                for linea in compra.lineas_alicuotas():
-                    file2.write(linea.replace('|', '') + '\n')
+                    # recalculamos el registro
+                    compra.recalcular()
+                
+                    file1.write(str(compra).replace('|', '') + '\n')
+                    TOTAL += reg['TOTAL']
                     IVA += reg['IVA21'] + reg['IVA10_5'] + reg['IVA27']
+                    for linea in compra.lineas_alicuotas():
+                         file2.write(linea.replace('|', '') + '\n')
+                else:
+                    log.write(reg['LETRA'])
 
             except Exception as e:
                 log.write('IdFacProveedor %s - %s \n' % (reg['IDFACPROVEDOR'], str(e)))
@@ -113,6 +95,26 @@ def str_to_date(date_text, p_month, p_year):
     except ValueError:
         return datetime.date(p_year, p_month, 1)
 
+
+def registro_valido(reg):
+    # descartamos los comprobante que no sea de tipo A
+    if reg['LETRA'] != 'A':
+        return False
+
+    # redondeamos los valores numéricos
+    reg['IVA21'] = round(float(reg['IVA21'].replace(",",".")), 2)
+    reg['IVA27'] = round(float(reg['IVA27'].replace(",",".")), 2)
+    reg['IVA10_5'] = round(float(reg['IVA10_5'].replace(",",".")), 2)
+    if (reg['IVA21'] + reg['IVA27'] + reg['IVA10_5']) == 0:
+        return False
+
+    reg['GRAVADO'] = round(float(reg['GRAVADO'].replace(",",".")), 2)
+    reg['NOGRAVADO'] = round(float(reg['NOGRAVADO'].replace(",",".")), 2)
+    reg['PERC_IB'] = round(float(reg['PERC_IB'].replace(",",".")), 2)
+    reg['PERC_IVA'] = round(float(reg['PERC_IVA'].replace(",",".")), 2)
+    reg['TOTAL'] = round(float(reg['TOTAL'].replace(",",".")), 2)
+
+    return True
 
 
 # if __name__ == "__main__":

@@ -6,8 +6,8 @@ from script.afip.ventas import Ventas
 
 RUTA = '/home/roberto/Programacion/python/reg3685'
 ARCHIVO = RUTA + '/datos/lubre_ventas.csv'
-ARCH_COMPRA = RUTA + '/salida/lubre_01_ventas.txt'
-ARCH_ALICUOTA = RUTA + '/salida/lubre_02_ventas_ali.txt'
+ARCH_COMPRA = RUTA + '/salida/lubre_03_ventas.txt'
+ARCH_ALICUOTA = RUTA + '/salida/lubre_04_ventas_ali.txt'
 LOG_ERROR = RUTA + '/salida/error.log'
 
 def procesar(p_anio, p_mes):
@@ -59,9 +59,9 @@ def procesar(p_anio, p_mes):
             
                 file1.write(str(venta).replace('|', '') + '\n')
                 TOTAL += reg['TOTAL']
+                IVA += reg['IVA21'] + reg['OTROIVA']
                 for linea in venta.lineas_alicuotas():
                     file2.write(linea.replace('|', '') + '\n')
-                    IVA += reg['IVA21']
 
             except Exception as e:
                 log.write('IdFactura %s - %s \n' % (reg['IDFACTURA'], str(e)))

@@ -6,8 +6,8 @@ from script.afip.ventas import Ventas
 
 RUTA = '/home/roberto/Programacion/python/reg3685'
 ARCHIVO = RUTA + '/datos/debo_ventas.csv'
-ARCH_COMPRA = RUTA + '/salida/debo_01_ventas.txt'
-ARCH_ALICUOTA = RUTA + '/salida/debo_02_ventas_ali.txt'
+ARCH_COMPRA = RUTA + '/salida/debo_03_ventas.txt'
+ARCH_ALICUOTA = RUTA + '/salida/debo_04_ventas_ali.txt'
 LOG_ERROR = RUTA + '/salida/error.log'
 
 def procesar(p_anio, p_mes):
