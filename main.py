@@ -9,22 +9,18 @@ def menu():
     Función que limpia la pantalla y muestra nuevamente el menu
     """
     os.system('clear') # NOTA para windows tienes que cambiar clear por cls
-    print("----------- LUBRE-----------------")
-    print("1 - Compras")
-    print("2 - Ventas")
-    print("")
-    print("----------- DEBO -----------------")
-    # print("x - Borrar tablas")
-    # print("x - Cargar archivos de ventas")
-    # print("x - Limpiar ventas y alícuotas")
-    # print("x - Generar archivos de ventas")
-    print("4 - Ventas")
-    print("")
-    print("0 - Salir")
-    print("")
+    print("+---------- Menú ----------+")
+    print("| 1 - Lubre Compras        |")
+    print("| 2 - Lubre Ventas         |")
+    print("| 3 - Debo  Compras        |")
+    print("| 4 - Debo  Ventas         |")
+    print("+--------------------------+")
+    print("| 0 - Salir                |")
+    print("+--------------------------+")
 
 
 if __name__ == "__main__":
+    os.system('clear')
     ANIO = int(input("Ingrese el año de procesamiento (%s) : " % datetime.datetime.now().year) or datetime.datetime.now().year)
     MES = int(input("Ingrese número de mes (%s) : " % datetime.datetime.now().month) or datetime.datetime.now().month)
 
@@ -48,7 +44,9 @@ if __name__ == "__main__":
             ventas.procesar(ANIO, MES)
 
         elif opcionMenu == "3":
-            pass
+            os.system('clear')
+            from script.debo import compras
+            compras.procesar(ANIO, MES)
 
         elif opcionMenu == "4":
             os.system('clear')
@@ -56,6 +54,7 @@ if __name__ == "__main__":
             ventas.procesar(ANIO, MES)
 
         elif opcionMenu == "0":
+            os.system('clear')
             break
 
         else:

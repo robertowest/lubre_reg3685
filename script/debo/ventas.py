@@ -1,3 +1,5 @@
+# debemos obtener el Libro IVA desde el botón [Libro]
+#
 import csv, operator
 import datetime
 
@@ -25,50 +27,53 @@ def procesar(p_anio, p_mes):
     log = open(LOG_ERROR, 'w')
 
     with open(ARCHIVO, 'r', encoding='utf8') as csvarchivo:
-        # Fecha;TCO;N. Comprobante;Cliente;CUIT;Neto;IVA;Exento;
-        # IVA Otros;Percep;ImpInternos;ImpInt 1;Redondeo;Perc. I.V.A.;
-        # Tasa Vial;IVA 10.5;Total;Resp;suc_marca
+        # Fecha;TCO;N. Comprobante;Cliente;CUIT;
+        # Neto;IVA;Exento;IVA Otros;Percep;ImpInternos;ImpInt 1;
+        # Redondeo;Perc. I.V.A.;Tasa Vial;IVA 10.5;Total
 
         entrada = csv.DictReader(csvarchivo, delimiter=';', quoting=csv.QUOTE_NONE)
         for reg in entrada:
             try:
-                # comprobamos que la fecha sea válida y que esté en el mes correcto
-                reg['Fecha'] = str_to_date(reg['Fecha'][0:10], p_mes, p_anio)
-                reg['TCO'] = reg['TCO']
-                reg['Letra'] = reg['N. Comprobante'][0:1]
-                reg['Terminal'] = reg['N. Comprobante'][2:6]
-                reg['Numero'] = reg['N. Comprobante'][7:15]
-                # redondeamos los valores
-                reg['Neto'] = convert_float(reg['Neto'])
-                reg['Exento'] = convert_float(reg['Exento'])
-                reg['IVA'] = convert_float(reg['IVA'])
-                reg['IVA Otros'] = convert_float(reg['IVA Otros'])
-                reg['ImpInternos'] = convert_float(reg['ImpInternos'])
-                reg['Percep'] = convert_float(reg['Percep'])
-                reg['Perc. I.V.A.'] = convert_float(reg['Perc. I.V.A.'])
-                reg['Total'] = convert_float(reg['Total'])
+                if convert_float(reg['Total']) != 0:
+                    # comprobamos que la fecha sea válida y que esté en el mes correcto
+                    reg['Fecha'] = str_to_date(reg['Fecha'][0:10], p_mes, p_anio)
+                    # redondeamos los valores
+                    reg['Neto'] = convert_float(reg['Neto'])
+                    reg['Exento'] = convert_float(reg['Exento'])
+                    reg['IVA'] = convert_float(reg['IVA'])
+                    reg['IVA 10.5'] = convert_float(reg['IVA 10.5'])
+                    reg['IVA Otros'] = convert_float(reg['IVA Otros'])
+                    reg['ImpInternos'] = convert_float(reg['ImpInternos'])
+                    reg['Percep'] = convert_float(reg['Percep'])
+                    reg['Perc. I.V.A.'] = convert_float(reg['Perc. I.V.A.'])
+                    reg['Total'] = convert_float(reg['Total'])
 
-                venta = Ventas(reg['Fecha'], reg['TCO'] + reg['Letra'],
-                               reg['Terminal'], reg['Numero'])
-                venta.cuit = reg['CUIT']
-                venta.nombre = reg['Cliente']
-                venta.gravado = reg['Neto']
-                venta.no_gravado = reg['Exento']
-                venta.iva21 = reg['IVA']
-                venta.otro_iva = reg['IVA Otros']
-                venta.ii = reg['ImpInternos']
-                venta.p_ibb = reg['Percep']
-                venta.p_iva = reg['Perc. I.V.A.']
-                venta.total = reg['Total']
-            
-                file1.write(str(venta).replace('|', '') + '\n')
-                TOTAL += reg['Total']
-                for linea in venta.lineas_alicuotas():
-                    file2.write(linea.replace('|', '') + '\n')
-                    IVA += reg['IVA']
+                    # fecha, tc + letra, terminal, numero
+                    venta = Ventas(reg['Fecha'], reg['TCO'] + reg['N. Comprobante'][0:1],
+                                   reg['N. Comprobante'][2:6], reg['N. Comprobante'][7:15])
+                    venta.hasta = reg['N. Comprobante'][-8:]
+                    venta.cuit = reg['CUIT']
+                    venta.nombre = reg['Cliente']
+                    venta.gravado = reg['Neto']
+                    venta.no_gravado = reg['Exento']
+                    venta.iva21 = reg['IVA']
+                    venta.iva10 = reg['IVA 10.5']
+                    venta.otro_iva = reg['IVA Otros']
+                    venta.ii = reg['ImpInternos']
+                    venta.p_ibb = reg['Percep']
+                    venta.p_iva = reg['Perc. I.V.A.']
+                    venta.total = reg['Total']
+                
+                    file1.write(str(venta).replace('|', '') + '\n')
+                    TOTAL += reg['Total']
+                    IVA += reg['IVA'] + reg['IVA 10.5'] + reg['IVA Otros']
+                    for linea in venta.lineas_alicuotas():
+                        file2.write(linea.replace('|', '') + '\n')
 
             except Exception as e:
-                log.write('Comprob. %s - %s \n' % (reg['N. Comprobante'], str(e)))
+                log.write('%s - %s \n' % 
+                    (reg['N. Comprobante'], str(e))
+                )
                 ERRORES += 1
 
             LINEA += 1

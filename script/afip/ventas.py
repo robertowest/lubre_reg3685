@@ -9,12 +9,14 @@ class Ventas:
         self.comprobante = comprobante
         self.terminal = terminal
         self.numero = numero
+        self.hasta = numero
         self.condicion_iva = 'I'
         self.cuit = ''
         self.nombre = ''
         self.gravado = 0
         self.no_gravado = 0
         self.iva21 = 0
+        self.iva10 = 0
         self.p_ibb = 0
         self.p_iva = 0
         self.ii = 0
@@ -26,7 +28,7 @@ class Ventas:
             self.comprobante,
             self.terminal,
             self.numero,
-            self.numero,
+            self.hasta,
             "80",
             self.cuit,
             self.nombre,
@@ -41,7 +43,7 @@ class Ventas:
             "PES",
             "0001000000",
             "1",
-            self.operacion(),
+            self.operacion,
             self.otro_iva,
             "0".rjust(8, "0")
         ]
@@ -120,6 +122,14 @@ class Ventas:
         self.__numero = valor
 
     @property
+    def hasta(self):
+        return str(self.__hasta).rjust(20, '0')
+
+    @hasta.setter
+    def hasta(self, valor):
+        self.__hasta = valor
+
+    @property
     def condicion_iva(self):
         return self.__condicion_iva
 
@@ -185,6 +195,17 @@ class Ventas:
             self.__iva21 = round(valor, 2)
 
     @property
+    def iva10(self):
+        return format(abs(self.__iva10), '.2f').replace(".", "").rjust(15, '0')
+
+    @iva10.setter
+    def iva10(self, valor):
+        if type(valor) == str:
+            self.__iva10 = round(float(valor), 2)
+        else:
+            self.__iva10 = round(valor, 2)
+
+    @property
     def p_ibb(self):
         return format(abs(self.__p_ibb), '.2f').replace(".", "").rjust(15, '0')
 
@@ -239,11 +260,25 @@ class Ventas:
         else:
             self.__total = round(valor, 2)
 
+    @property
     def operacion(self):
         if (self.__no_gravado == self.__total):
             return 'N'
         else:
             return '0'
+
+    @property
+    def alicuotas(self):
+        self.__alicuotas = 0
+        if self.__iva21 != 0:
+            self.__alicuotas += 1
+        if self.__iva10 != 0:
+            self.__alicuotas += 1
+        return str(self.__alicuotas)
+
+    @alicuotas.setter
+    def alicuotas(self, valor):
+        self.__alicuotas = valor
 
     # alicuotas
     def __define_linea_iva(self):
@@ -255,7 +290,7 @@ class Ventas:
 
     def __valor_iva(self, iva, porcentaje, largo):
         neto = round(iva / porcentaje, 2)
-        return format(neto, '.2f').replace(".", "").rjust(largo, '0')
+        return format(abs(neto), '.2f').replace(".", "").rjust(largo, '0')
 
     def lineas_alicuotas(self):
         # 002-00050-00000000000000000002-000000000413223-0005-000000000086777
@@ -267,5 +302,12 @@ class Ventas:
             linea1.append("0005")
             linea1.append(self.iva21)
             lineas.append("|".join(linea1))
+
+        if self.__iva10 != 0:
+            linea2 = self.__define_linea_iva()
+            linea2.append(self.__valor_iva(self.__iva10, .10, 15))
+            linea2.append("0004")
+            linea2.append(self.iva10)
+            lineas.append("|".join(linea2))
 
         return lineas

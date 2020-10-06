@@ -83,18 +83,18 @@ class Compras:
             'NDEB': '007',
             'NDEC': '012',
             # comprobantes DEBO
-            'FTA': '001',
-            'FTB': '006',
-            'FTC': '011',
-            'NDA': '002',
-            'NDB': '007',
-            'NDC': '012',
-            'NCA': '003',
-            'NCB': '008',
-            'NCC': '013',
-            'CIA': '111',
-            'CIB': '222',
-            'RER': '333',
+            'FT A': '001',
+            'FT B': '006',
+            'FT C': '011',
+            'ND A': '002',
+            'ND B': '007',
+            'ND C': '012',
+            'NC A': '003',
+            'NC B': '008',
+            'NC C': '013',
+            'CI A': '111',
+            'CI B': '222',
+            'RE R': '333',
         }
         return switcher.get(self.__comprobante, "FACA")        
 
@@ -252,29 +252,6 @@ class Compras:
     @alicuotas.setter
     def alicuotas(self, valor):
         self.__alicuotas = valor
-
-    # def recalcular(self):
-    #     suma = round(self.__gravado + self.__no_gravado + \
-    #                  self.__iva21 + self.__iva10 + self.__iva27 + \
-    #                  self.__p_ibb + self.__p_iva + self.__itc, 2)
-    #     if (self.__total - suma) != 0:
-    #         total = self.__total
-    #         iva = self.__iva21 + self.__iva10 + self.__iva27
-    #         otros = self.__p_ibb + self.__p_iva + self.__itc
-
-    #         # calculamos el gravado en función de los impuestos
-    #         gravado = round(self.__iva21 / .21, 2) + \
-    #                   round(self.__iva10 / .105, 2) + \
-    #                   round(self.__iva27 / .27, 2)
-    #         no_gravado = total - (gravado + iva + otros)
-            
-    #         if no_gravado != 0:
-    #             if abs(no_gravado) > 1:
-    #                 self.__no_gravado = no_gravado
-    #             else:
-    #                 # si son decimales los quitamos del gravado
-    #                 self.gravado = gravado - no_gravado
-    #                 self.__no_gravado = 0
 
     def recalcular(self):
         # calculamos el gravado en función de los impuestos

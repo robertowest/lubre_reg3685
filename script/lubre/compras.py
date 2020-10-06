@@ -11,7 +11,7 @@ ARCH_ALICUOTA = RUTA + '/salida/lubre_02_compras_ali.txt'
 LOG_ERROR = RUTA + '/salida/error.log'
 
 def procesar(p_anio, p_mes):
-    print("leyendo archivo compras_lubre.csv")
+    print("leyendo archivo lubre_compras.csv")
     open(LOG_ERROR, 'a').close()
 
     LINEAS = lines_in_file(ARCHIVO)
