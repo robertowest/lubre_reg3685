@@ -22,9 +22,9 @@ def procesar(p_anio, p_mes):
     IVA = 0
     ERRORES = 0
 
-    file1 = open(ARCH_COMPRA, 'w', encoding='ascii')
-    file2 = open(ARCH_ALICUOTA, 'w', encoding='ascii')
-    log = open(LOG_ERROR, 'w')
+    file1 = open(ARCH_COMPRA, 'w', encoding='ascii', newline='\r\n')
+    file2 = open(ARCH_ALICUOTA, 'w', encoding='ascii', newline='\r\n')
+    log = open(LOG_ERROR, 'w', newline='\r\n')
 
     with open(ARCHIVO, 'r', encoding='utf8') as csvarchivo:
         # Fecha;TCO;N. Comprobante;Cliente;CUIT;
@@ -34,41 +34,35 @@ def procesar(p_anio, p_mes):
         entrada = csv.DictReader(csvarchivo, delimiter=';', quoting=csv.QUOTE_NONE)
         for reg in entrada:
             try:
-                if convert_float(reg['Total']) != 0:
-                    # comprobamos que la fecha sea válida y que esté en el mes correcto
-                    reg['Fecha'] = str_to_date(reg['Fecha'][0:10], p_mes, p_anio)
-                    # redondeamos los valores
-                    reg['Neto'] = convert_float(reg['Neto'])
-                    reg['Exento'] = convert_float(reg['Exento'])
-                    reg['IVA'] = convert_float(reg['IVA'])
-                    reg['IVA 10.5'] = convert_float(reg['IVA 10.5'])
-                    reg['IVA Otros'] = convert_float(reg['IVA Otros'])
-                    reg['ImpInternos'] = convert_float(reg['ImpInternos'])
-                    reg['Percep'] = convert_float(reg['Percep'])
-                    reg['Perc. I.V.A.'] = convert_float(reg['Perc. I.V.A.'])
-                    reg['Total'] = convert_float(reg['Total'])
+                if (reg['Cliente'] != '**ANULADA**'):
+                    if registro_valido(reg, p_anio, p_mes):
+                        # fecha, tc + letra, terminal, numero
+                        venta = Ventas(reg['Fecha'], reg['TCO'] + reg['N. Comprobante'][0:1],
+                                    reg['N. Comprobante'][2:6], reg['N. Comprobante'][7:15])
+                        venta.hasta = reg['N. Comprobante'][-8:]
+                        venta.cuit = reg['CUIT']
+                        venta.nombre = normalizar_texto(reg['Cliente'])
+                        venta.gravado = reg['Neto']
+                        venta.no_gravado = reg['Exento']
+                        venta.iva21 = reg['IVA']
+                        venta.iva10 = reg['IVA 10.5']
+                        venta.otro_iva = reg['IVA Otros']
+                        venta.ii = reg['ImpInternos']
+                        venta.p_ibb = reg['Percep']
+                        venta.p_iva = reg['Perc. I.V.A.']
+                        venta.total = reg['Total']
+                    
+                        if venta.comprobante == '99':
+                            if reg['Total'] > 1000:
+                                abc=0
 
-                    # fecha, tc + letra, terminal, numero
-                    venta = Ventas(reg['Fecha'], reg['TCO'] + reg['N. Comprobante'][0:1],
-                                   reg['N. Comprobante'][2:6], reg['N. Comprobante'][7:15])
-                    venta.hasta = reg['N. Comprobante'][-8:]
-                    venta.cuit = reg['CUIT']
-                    venta.nombre = reg['Cliente']
-                    venta.gravado = reg['Neto']
-                    venta.no_gravado = reg['Exento']
-                    venta.iva21 = reg['IVA']
-                    venta.iva10 = reg['IVA 10.5']
-                    venta.otro_iva = reg['IVA Otros']
-                    venta.ii = reg['ImpInternos']
-                    venta.p_ibb = reg['Percep']
-                    venta.p_iva = reg['Perc. I.V.A.']
-                    venta.total = reg['Total']
-                
-                    file1.write(str(venta).replace('|', '') + '\n')
-                    TOTAL += reg['Total']
-                    IVA += reg['IVA'] + reg['IVA 10.5'] + reg['IVA Otros']
-                    for linea in venta.lineas_alicuotas():
-                        file2.write(linea.replace('|', '') + '\n')
+                        file1.write(str(venta).replace('|', '') + '\n')
+                        TOTAL += reg['Total']
+                        IVA += reg['IVA'] + reg['IVA 10.5'] + reg['IVA Otros']
+                        for linea in venta.lineas_alicuotas():
+                            file2.write(linea.replace('|', '') + '\n')
+                    else:
+                        raise Exception('registro inválido')
 
             except Exception as e:
                 log.write('%s - %s \n' % 
@@ -108,12 +102,49 @@ def str_to_date(date_text, p_month, p_year):
         return datetime.date(p_year, p_month, 1)
 
 
+def registro_valido(reg, p_anio, p_mes):
+    if reg['N. Comprobante'][:1] == 'B':
+        reg['CUIT'] == '12345678' 
+        reg['Cliente'] == 'Consumidor Final'
+
+    # comprobamos que la fecha sea válida y que esté en el mes correcto
+    reg['Fecha'] = str_to_date(reg['Fecha'][0:10], p_mes, p_anio)
+
+    # redondeamos los valores
+    reg['Neto'] = convert_float(reg['Neto'])
+    reg['Exento'] = convert_float(reg['Exento'])
+    reg['IVA'] = convert_float(reg['IVA'])
+    reg['IVA 10.5'] = convert_float(reg['IVA 10.5'])
+    reg['IVA Otros'] = convert_float(reg['IVA Otros'])
+    reg['ImpInternos'] = convert_float(reg['ImpInternos'])
+    reg['Percep'] = convert_float(reg['Percep'])
+    reg['Perc. I.V.A.'] = convert_float(reg['Perc. I.V.A.'])
+    reg['Total'] = convert_float(reg['Total'])
+
+    # return (reg['Total'] != 0)
+    return True
+
+
 def convert_float(value):
     if value.strip() == '':
         value = 0
     if type(value) == str:
         value = float(value.replace(",","."))
     return round(value, 2)
+
+
+def normalizar_texto(s):
+    replacements = (
+        ("á", "a"),
+        ("é", "e"),
+        ("í", "i"),
+        ("ó", "o"),
+        ("ú", "u"),
+        ("ñ", "n"),
+    )
+    for a, b in replacements:
+        s = s.replace(a, b).replace(a.upper(), b.upper())
+    return s
 
 
 # if __name__ == "__main__":

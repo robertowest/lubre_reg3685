@@ -44,7 +44,7 @@ class Ventas:
             "0001000000",
             "1",
             self.operacion,
-            self.otro_iva,
+            "0".rjust(15, "0"),
             "0".rjust(8, "0")
         ]
         return "|".join(linea)
@@ -238,16 +238,16 @@ class Ventas:
         else:
             self.__ii = round(valor, 2)
 
-    @property
-    def otro_iva(self):
-        return format(abs(self.__otro_iva), '.2f').replace(".", "").rjust(15, '0')
+    # @property
+    # def otro_iva(self):
+    #     return format(abs(self.__otro_iva), '.2f').replace(".", "").rjust(15, '0')
 
-    @otro_iva.setter
-    def otro_iva(self, valor):
-        if type(valor) == str:
-            self.__otro_iva = round(float(valor), 2)
-        else:
-            self.__otro_iva = round(valor, 2)
+    # @otro_iva.setter
+    # def otro_iva(self, valor):
+    #     if type(valor) == str:
+    #         self.__otro_iva = round(float(valor), 2)
+    #     else:
+    #         self.__otro_iva = round(valor, 2)
 
     @property
     def total(self):
@@ -280,6 +280,23 @@ class Ventas:
     def alicuotas(self, valor):
         self.__alicuotas = valor
 
+    def recalcular(self):
+        # calculamos el gravado en función de los impuestos
+        gravado = round(self.__iva21 / .21, 2) + \
+                  round(self.__iva10 / .105, 2)
+        iva = round(self.__iva21 + self.__iva10, 2)
+        otros = round(self.__p_ibb + self.__p_iva + self.__ii, 2)
+        total = round(self.__total, 2)
+        no_gravado = round(total - (gravado + iva + otros), 2)
+
+        if no_gravado != 0:
+            if abs(no_gravado) > 1:
+                self.__no_gravado = no_gravado
+            else:
+                # si son decimales los quitamos del gravado
+                self.gravado = gravado - no_gravado
+                self.__no_gravado = 0
+
     # alicuotas
     def __define_linea_iva(self):
         return [
@@ -305,7 +322,7 @@ class Ventas:
 
         if self.__iva10 != 0:
             linea2 = self.__define_linea_iva()
-            linea2.append(self.__valor_iva(self.__iva10, .10, 15))
+            linea2.append(self.__valor_iva(self.__iva10, .105, 15))
             linea2.append("0004")
             linea2.append(self.iva10)
             lineas.append("|".join(linea2))

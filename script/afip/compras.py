@@ -34,10 +34,10 @@ class Compras:
             self.total,
             self.no_gravado,
             "0".rjust(15, "0"),
-            self.p_iva,
+            "0".rjust(15, "0"),
             "0".rjust(15, "0"),
             self.p_ibb,
-            "0".rjust(15, "0"),
+            self.p_iva,
             self.itc,
             "PES",
             "0001000000",
@@ -259,9 +259,9 @@ class Compras:
                   round(self.__iva10 / .105, 2) + \
                   round(self.__iva27 / .27, 2)
         iva = round(self.__iva21 + self.__iva10 + self.__iva27, 2)
-        otros = self.__p_ibb + self.__p_iva + self.__itc
-        total = self.__total
-        no_gravado = total - (gravado + iva + otros)
+        otros = round(self.__p_ibb + self.__p_iva + self.__itc, 2)
+        total = round(self.__total, 2)
+        no_gravado = round(total - (gravado + iva + otros), 2)
 
         if no_gravado != 0:
             if abs(no_gravado) > 1:
@@ -282,7 +282,7 @@ class Compras:
         ]
 
     def __valor_iva(self, iva, porcentaje, largo):
-        neto = round(iva / porcentaje, 2)
+        neto = round(abs(iva) / porcentaje, 2)
         return format(neto, '.2f').replace(".", "").rjust(largo, '0')
 
     def lineas_alicuotas(self):
@@ -297,7 +297,7 @@ class Compras:
 
         if self.__iva10 != 0:
             linea2 = self.__define_linea_iva()
-            linea2.append(self.__valor_iva(self.__iva10, .10, 15))
+            linea2.append(self.__valor_iva(self.__iva10, .105, 15))
             linea2.append("0004")
             linea2.append(self.iva10)
             lineas.append("|".join(linea2))

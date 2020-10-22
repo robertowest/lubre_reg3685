@@ -20,9 +20,9 @@ def procesar(p_anio, p_mes):
     IVA = 0
     ERRORES = 0
 
-    file1 = open(ARCH_COMPRA, 'w', encoding='ascii')
-    file2 = open(ARCH_ALICUOTA, 'w', encoding='ascii')
-    log = open(LOG_ERROR, 'w')
+    file1 = open(ARCH_COMPRA, 'w', encoding='ascii', newline='\r\n')
+    file2 = open(ARCH_ALICUOTA, 'w', encoding='ascii', newline='\r\n')
+    log = open(LOG_ERROR, 'w', newline='\r\n')
 
     with open(ARCHIVO, 'r', encoding='utf8') as csvarchivo:    
         # FECHA;TIPOCOMPROB;LETRA;TERMINAL;NUMERO;RAZON;IVA;CUIT;
@@ -39,7 +39,7 @@ def procesar(p_anio, p_mes):
                     compra = Compras(reg['FECHA'], reg['TIPOCOMPROB'] + reg['LETRA'], 
                                     reg['TERMINAL'], reg['NUMERO'])
                     compra.cuit = reg['CUIT']
-                    compra.nombre = reg['RAZON']
+                    compra.nombre = normalizar_texto(reg['RAZON'])
                     compra.gravado = reg['GRAVADO']
                     compra.no_gravado = reg['NOGRAVADO']
                     compra.iva21 = reg['IVA21']
@@ -58,7 +58,7 @@ def procesar(p_anio, p_mes):
                     for linea in compra.lineas_alicuotas():
                          file2.write(linea.replace('|', '') + '\n')
                 else:
-                    log.write(reg['LETRA'])
+                    raise Exception('registro inválido')
 
             except Exception as e:
                 log.write('IdFacProveedor %s - %s \n' % (reg['IDFACPROVEDOR'], str(e)))
@@ -120,6 +120,20 @@ def registro_valido(reg):
 
     return True
 
+
+def normalizar_texto(s):
+    replacements = (
+        ("á", "a"),
+        ("é", "e"),
+        ("í", "i"),
+        ("ó", "o"),
+        ("ú", "u"),
+        ("ñ", "n"),
+        ("¥", " "),
+    )
+    for a, b in replacements:
+        s = s.replace(a, b).replace(a.upper(), b.upper())
+    return s
 
 # if __name__ == "__main__":
 #     procesar()

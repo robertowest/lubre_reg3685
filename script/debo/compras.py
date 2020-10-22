@@ -20,9 +20,9 @@ def procesar(p_anio, p_mes):
     IVA = 0
     ERRORES = 0
 
-    file1 = open(ARCH_COMPRA, 'w', encoding='ascii')
-    file2 = open(ARCH_ALICUOTA, 'w', encoding='ascii')
-    log = open(LOG_ERROR, 'w')
+    file1 = open(ARCH_COMPRA, 'w', encoding='ascii', newline='\r\n')
+    file2 = open(ARCH_ALICUOTA, 'w', encoding='ascii', newline='\r\n')
+    log = open(LOG_ERROR, 'w', newline='\r\n')
 
     with open(ARCHIVO, 'r', encoding='utf8') as csvarchivo:
         # Fecha;TCO;N. Comprobante;Proveedor;CUIT;
@@ -44,7 +44,7 @@ def procesar(p_anio, p_mes):
                                      reg['N. Comprobante'][5:9],
                                      reg['N. Comprobante'][10:18])
                     compra.cuit = reg['CUIT'][3:16]
-                    compra.nombre = reg['Proveedor'][6:36]
+                    compra.nombre = normalizar_texto(reg['Proveedor'][6:36])
                     compra.gravado = reg['Neto   ']
                     compra.no_gravado = reg['N.Exento']
                     compra.iva21 = reg['IVA R.']
@@ -127,6 +127,20 @@ def registro_valido(reg):
     reg['Total'] = round(float(reg['Total'].replace(",",".")), 2)
 
     return True
+
+
+def normalizar_texto(s):
+    replacements = (
+        ("á", "a"),
+        ("é", "e"),
+        ("í", "i"),
+        ("ó", "o"),
+        ("ú", "u"),
+        ("ñ", "n"),
+    )
+    for a, b in replacements:
+        s = s.replace(a, b).replace(a.upper(), b.upper())
+    return s
 
 
 # if __name__ == "__main__":

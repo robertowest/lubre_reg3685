@@ -20,9 +20,9 @@ def procesar(p_anio, p_mes):
     IVA = 0
     ERRORES = 0
 
-    file1 = open(ARCH_COMPRA, 'w', encoding='ascii')
-    file2 = open(ARCH_ALICUOTA, 'w', encoding='ascii')
-    log = open(LOG_ERROR, 'w')
+    file1 = open(ARCH_COMPRA, 'w', encoding='ascii', newline='\r\n')
+    file2 = open(ARCH_ALICUOTA, 'w', encoding='ascii', newline='\r\n')
+    log = open(LOG_ERROR, 'w', newline='\r\n')
 
     with open(ARCHIVO, 'r', encoding='utf8') as csvarchivo:
         # FECHA;TIPOCOMPROB;LETRA;TERMINAL;NUMERO;IVA;CUIT;NOMBRE;
@@ -32,36 +32,30 @@ def procesar(p_anio, p_mes):
         entrada = csv.DictReader(csvarchivo, delimiter=';', quoting=csv.QUOTE_NONE)
         for reg in entrada:
             try:
-                # comprobamos que la fecha sea válida y que esté en el mes correcto
-                reg['FECHA'] = str_to_date(reg['FECHA'], p_mes, p_anio)
-                # redondeamos los valores
-                reg['GRAVADO'] = round(float(reg['GRAVADO'].replace(",",".")), 2)
-                reg['NOGRAVA'] = round(float(reg['NOGRAVA'].replace(",",".")), 2)
-                reg['IVA21'] = round(float(reg['IVA21'].replace(",",".")), 2)
-                reg['OTROIVA'] = round(float(reg['OTROIVA'].replace(",",".")), 2)
-                reg['IMPINT'] = round(float(reg['IMPINT'].replace(",",".")), 2)
-                reg['PERCIB'] = round(float(reg['PERCIB'].replace(",",".")), 2)
-                reg['PERCIVA'] = round(float(reg['PERCIVA'].replace(",",".")), 2)
-                reg['TOTAL'] = round(float(reg['TOTAL'].replace(",",".")), 2)
+                if registro_valido(reg, p_anio, p_mes):
+                    venta = Ventas(reg['FECHA'], reg['TIPOCOMPROB'] + reg['LETRA'], 
+                                reg['TERMINAL'], reg['NUMERO'])
+                    venta.cuit = reg['CUIT']
+                    venta.nombre = normalizar_texto(reg['NOMBRE'])
+                    venta.gravado = reg['GRAVADO']
+                    venta.no_gravado = reg['NOGRAVA']
+                    venta.iva21 = reg['IVA21']
+                    venta.iva10 = reg['OTROIVA']
+                    venta.ii = reg['IMPINT']
+                    venta.p_ibb = reg['PERCIB']
+                    venta.p_iva = reg['PERCIVA']
+                    venta.total = reg['TOTAL']
+                
+                    # recalculamos el registro
+                    venta.recalcular()
 
-                venta = Ventas(reg['FECHA'], reg['TIPOCOMPROB'] + reg['LETRA'], 
-                               reg['TERMINAL'], reg['NUMERO'])
-                venta.cuit = reg['CUIT']
-                venta.nombre = reg['NOMBRE']
-                venta.gravado = reg['GRAVADO']
-                venta.no_gravado = reg['NOGRAVA']
-                venta.iva21 = reg['IVA21']
-                venta.otro_iva = reg['OTROIVA']
-                venta.ii = reg['IMPINT']
-                venta.p_ibb = reg['PERCIB']
-                venta.p_iva = reg['PERCIVA']
-                venta.total = reg['TOTAL']
-            
-                file1.write(str(venta).replace('|', '') + '\n')
-                TOTAL += reg['TOTAL']
-                IVA += reg['IVA21'] + reg['OTROIVA']
-                for linea in venta.lineas_alicuotas():
-                    file2.write(linea.replace('|', '') + '\n')
+                    file1.write(str(venta).replace('|', '') + '\n')
+                    TOTAL += reg['TOTAL']
+                    IVA += reg['IVA21'] + reg['OTROIVA']
+                    for linea in venta.lineas_alicuotas():
+                        file2.write(linea.replace('|', '') + '\n')
+                else:
+                    raise Exception('registro inválido')
 
             except Exception as e:
                 log.write('IdFactura %s - %s \n' % (reg['IDFACTURA'], str(e)))
@@ -98,6 +92,41 @@ def str_to_date(date_text, p_month, p_year):
     except ValueError:
         return datetime.date(p_year, p_month, 1)
 
+
+def registro_valido(reg, p_anio, p_mes):
+    # comprobamos que la fecha sea válida y que esté en el mes correcto
+    reg['FECHA'] = str_to_date(reg['FECHA'], p_mes, p_anio)
+
+    # redondeamos los valores
+    reg['GRAVADO'] = round(float(reg['GRAVADO'].replace(",",".")), 2)
+    reg['NOGRAVA'] = round(float(reg['NOGRAVA'].replace(",",".")), 2)
+    reg['IVA21'] = round(float(reg['IVA21'].replace(",",".")), 2)
+    reg['OTROIVA'] = round(float(reg['OTROIVA'].replace(",",".")), 2)
+    reg['IMPINT'] = round(float(reg['IMPINT'].replace(",",".")), 2)
+    reg['PERCIB'] = round(float(reg['PERCIB'].replace(",",".")), 2)
+    reg['PERCIVA'] = round(float(reg['PERCIVA'].replace(",",".")), 2)
+    reg['TOTAL'] = round(float(reg['TOTAL'].replace(",",".")), 2)
+
+    # comprobamos que no falte letra del comprobante
+    if reg['LETRA'] == '':
+        # si tiene IVA ponemos letra A
+        reg['LETRA'] = ['A','C'][reg['IVA21'] + reg['OTROIVA'] == 0]
+
+    return True
+
+
+def normalizar_texto(s):
+    replacements = (
+        ("á", "a"),
+        ("é", "e"),
+        ("í", "i"),
+        ("ó", "o"),
+        ("ú", "u"),
+        ("ñ", "n"),
+    )
+    for a, b in replacements:
+        s = s.replace(a, b).replace(a.upper(), b.upper())
+    return s
 
 
 # if __name__ == "__main__":
