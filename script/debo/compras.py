@@ -6,8 +6,8 @@ from script.afip.compras import Compras
 
 RUTA = '/home/roberto/Programacion/python/reg3685'
 ARCHIVO = RUTA + '/datos/debo_compras.csv'
-ARCH_COMPRA = RUTA + '/salida/debo_03_compras.txt'
-ARCH_ALICUOTA = RUTA + '/salida/debo_04_compras_ali.txt'
+ARCH_COMPRA = RUTA + '/salida/debo_01_compras.txt'
+ARCH_ALICUOTA = RUTA + '/salida/debo_02_compras_ali.txt'
 LOG_ERROR = RUTA + '/salida/error.log'
 
 def procesar(p_anio, p_mes):

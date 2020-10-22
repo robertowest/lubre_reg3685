@@ -97,16 +97,20 @@ def str_to_date(date_text, p_month, p_year):
 
 
 def registro_valido(reg):
-    # descartamos los comprobante que no sea de tipo A
-    if reg['LETRA'] != 'A':
-        return False
-
     # redondeamos los valores numéricos
     reg['IVA21'] = round(float(reg['IVA21'].replace(",",".")), 2)
     reg['IVA27'] = round(float(reg['IVA27'].replace(",",".")), 2)
     reg['IVA10_5'] = round(float(reg['IVA10_5'].replace(",",".")), 2)
     if (reg['IVA21'] + reg['IVA27'] + reg['IVA10_5']) == 0:
         return False
+
+    # descartamos los comprobante que no sea de tipo A
+    if reg['LETRA'] != 'A':
+        # si tiene IVA ponemos letra A
+        if (reg['IVA21'] + reg['IVA27'] + reg['IVA10_5']) != 0:
+            reg['LETRA'] = 'A'
+        else:
+            return False
 
     reg['GRAVADO'] = round(float(reg['GRAVADO'].replace(",",".")), 2)
     reg['NOGRAVADO'] = round(float(reg['NOGRAVADO'].replace(",",".")), 2)
