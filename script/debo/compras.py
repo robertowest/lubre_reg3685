@@ -107,6 +107,24 @@ def str_to_date(date_text, p_month, p_year):
         return datetime.date(p_year, p_month, 1)
 
 
+def comprobante(self):
+    switcher = {
+        'FT A': '001',
+        'FT B': '006',
+        'FT C': '011',
+        'ND A': '002',
+        'ND B': '007',
+        'ND C': '012',
+        'NC A': '003',
+        'NC B': '008',
+        'NC C': '013',
+        'CI A': '111',
+        'CI B': '222',
+        'RE R': '333',
+    }
+    return switcher.get(tipo, "FT A") 
+
+
 def registro_valido(reg):
     # descartamos los comprobante que no sea de tipo A
     if reg['N. Comprobante'][3:4] != 'A':

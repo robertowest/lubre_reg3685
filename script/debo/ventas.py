@@ -37,25 +37,24 @@ def procesar(p_anio, p_mes):
                 if (reg['Cliente'] != '**ANULADA**'):
                     if registro_valido(reg, p_anio, p_mes):
                         # fecha, tc + letra, terminal, numero
-                        venta = Ventas(reg['Fecha'], reg['TCO'] + reg['N. Comprobante'][0:1],
-                                    reg['N. Comprobante'][2:6], reg['N. Comprobante'][7:15])
+                        venta = Ventas(reg['Fecha'], 
+                                       comprobante(reg['TCO'] + reg['N. Comprobante'][0:1]),
+                                       reg['N. Comprobante'][2:6], 
+                                       reg['N. Comprobante'][7:15])
                         venta.hasta = reg['N. Comprobante'][-8:]
+                        venta.doc = reg['DOC']
                         venta.cuit = reg['CUIT']
                         venta.nombre = normalizar_texto(reg['Cliente'])
-                        venta.gravado = reg['Neto']
+                        venta.gravado = reg['Neto']   # + reg['Redondeo']
                         venta.no_gravado = reg['Exento']
                         venta.iva21 = reg['IVA']
                         venta.iva10 = reg['IVA 10.5']
                         venta.otro_iva = reg['IVA Otros']
-                        venta.ii = reg['ImpInternos']
+                        venta.ii = reg['ImpInternos'] + reg['ImpInt 1']
                         venta.p_ibb = reg['Percep']
                         venta.p_iva = reg['Perc. I.V.A.']
                         venta.total = reg['Total']
                     
-                        if venta.comprobante == '99':
-                            if reg['Total'] > 1000:
-                                abc=0
-
                         file1.write(str(venta).replace('|', '') + '\n')
                         TOTAL += reg['Total']
                         IVA += reg['IVA'] + reg['IVA 10.5'] + reg['IVA Otros']
@@ -102,26 +101,72 @@ def str_to_date(date_text, p_month, p_year):
         return datetime.date(p_year, p_month, 1)
 
 
+def comprobante(tipo):
+    swiiher = {
+        'CIA': '111',
+        'CIB': '222',
+        'FTA': '001',
+        'FTB': '006',
+        'FTC': '011',
+        'NDA': '002',
+        'NDB': '007',
+        'NDC': '012',
+        'NCA': '003',
+        'NCB': '008',
+        'NCC': '013',
+        'RER': '333',
+        'TIA': '081',
+        'TIB': '082',
+    }
+    return swiiher.get(tipo, "TIA")   
+
+
 def registro_valido(reg, p_anio, p_mes):
-    if reg['N. Comprobante'][:1] == 'B':
-        reg['CUIT'] == '12345678' 
-        reg['Cliente'] == 'Consumidor Final'
+    reg['DOC'] = "80"
+    if reg['N. Comprobante'][:1] == "B":
+        # corregimos los comprobantes duplicados, el listado de DEBO tiene errores al 
+        # agrupar los comprobantes 
+        desde = reg['N. Comprobante'][7:15]
+        hasta = reg['N. Comprobante'][-8:]
+        # if (int(hasta) - int(desde) > 500):
+        #     reg['N. Comprobante'] = reg['N. Comprobante'].replace(desde, hasta)
+        if desde == "00000002":
+            reg['N. Comprobante'] = reg['N. Comprobante'].replace(desde, hasta)
+
+        # definimos el tipo de DOC según corresponda
+        if reg['CUIT'] == "" or reg['Cliente'] == "":
+            if convert_float(reg['Total']) > 1000:
+                reg['DOC'] = "96"
+                reg['CUIT'] = "12345678"
+                reg['Cliente'] = "Consumidor Final"
+            else:
+                reg['DOC'] = "99"
+                reg['Cliente'] = "Consumidor Final"
 
     # comprobamos que la fecha sea válida y que esté en el mes correcto
     reg['Fecha'] = str_to_date(reg['Fecha'][0:10], p_mes, p_anio)
 
     # redondeamos los valores
-    reg['Neto'] = convert_float(reg['Neto'])
-    reg['Exento'] = convert_float(reg['Exento'])
-    reg['IVA'] = convert_float(reg['IVA'])
-    reg['IVA 10.5'] = convert_float(reg['IVA 10.5'])
-    reg['IVA Otros'] = convert_float(reg['IVA Otros'])
-    reg['ImpInternos'] = convert_float(reg['ImpInternos'])
-    reg['Percep'] = convert_float(reg['Percep'])
+    reg['Neto']         = convert_float(reg['Neto'])
+    reg['Exento']       = convert_float(reg['Exento'])
+    reg['IVA']          = convert_float(reg['IVA'])
+    reg['IVA 10.5']     = convert_float(reg['IVA 10.5'])
+    reg['IVA Otros']    = convert_float(reg['IVA Otros'])
+    reg['ImpInternos']  = convert_float(reg['ImpInternos'])
+    reg['ImpInt 1']     = convert_float(reg['ImpInt 1'])
+    reg['Redondeo']     = convert_float(reg['Redondeo'])
+    reg['Percep']       = convert_float(reg['Percep'])
     reg['Perc. I.V.A.'] = convert_float(reg['Perc. I.V.A.'])
-    reg['Total'] = convert_float(reg['Total'])
+    reg['Total']        = convert_float(reg['Total'])
 
-    # return (reg['Total'] != 0)
+    # control de redondeo
+    if reg['Neto'] != round((reg['IVA'] / .21) + (reg['IVA 10.5'] / .105), 2):
+        # total = reg['Neto'] + reg['Exento'] + reg['IVA'] + reg['IVA 10.5'] + \
+        #         reg['IVA Otros'] + reg['ImpInternos'] + reg['ImpInt 1'] + \
+        #         reg['Percep'] + reg['Perc. I.V.A.']
+        # if reg['Total'] != round(total, 2):
+        recalcular(reg)
+
     return True
 
 
@@ -145,6 +190,27 @@ def normalizar_texto(s):
     for a, b in replacements:
         s = s.replace(a, b).replace(a.upper(), b.upper())
     return s
+
+
+def recalcular(reg):
+    # calculamos el gravado en función de los impuestos
+    gravado = round((reg['IVA'] / .21) + \
+                    (reg['IVA 10.5'] / .105), 2)
+    iva = round(reg['IVA'] + reg['IVA 10.5'], 2)
+    otros = round(reg['ImpInternos'] + reg['ImpInt 1'] + \
+                  reg['Percep'] + reg['Perc. I.V.A.'] + \
+                  reg['IVA Otros'], 2)
+    total = reg['Total']
+    no_gravado = round(total - (gravado + iva + otros), 2)
+
+    if no_gravado != 0:
+        reg['Neto'] = gravado
+        reg['Exento'] = 0
+        if abs(no_gravado) > 1:
+            reg['Exento'] = no_gravado
+        else:
+            # si son decimales los quitamos del gravado
+            reg['Total'] = round(total - no_gravado, 2)
 
 
 # if __name__ == "__main__":

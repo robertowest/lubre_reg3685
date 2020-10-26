@@ -36,8 +36,9 @@ def procesar(p_anio, p_mes):
                     # comprobamos que la fecha sea válida y que esté en el mes correcto
                     reg['FECHA'] = str_to_date(reg['FECHA'], p_mes, p_anio)
 
-                    compra = Compras(reg['FECHA'], reg['TIPOCOMPROB'] + reg['LETRA'], 
-                                    reg['TERMINAL'], reg['NUMERO'])
+                    compra = Compras(reg['FECHA'], 
+                                     comprobante(reg['TIPOCOMPROB'] + reg['LETRA']), 
+                                     reg['TERMINAL'], reg['NUMERO'])
                     compra.cuit = reg['CUIT']
                     compra.nombre = normalizar_texto(reg['RAZON'])
                     compra.gravado = reg['GRAVADO']
@@ -58,7 +59,8 @@ def procesar(p_anio, p_mes):
                     for linea in compra.lineas_alicuotas():
                          file2.write(linea.replace('|', '') + '\n')
                 else:
-                    raise Exception('registro inválido')
+                    # raise Exception('registro inválido')
+                    print('registro descartado')
 
             except Exception as e:
                 log.write('IdFacProveedor %s - %s \n' % (reg['IDFACPROVEDOR'], str(e)))
@@ -94,6 +96,22 @@ def str_to_date(date_text, p_month, p_year):
             return mydate
     except ValueError:
         return datetime.date(p_year, p_month, 1)
+
+
+def comprobante(tipo):
+    switcher = {
+        'FACA': '001',
+        'FACB': '006',
+        'FACC': '011',
+        'LSGA': '090',
+        'NCRA': '003',
+        'NCRB': '008',
+        'NCRC': '013',
+        'NDEA': '002',
+        'NDEB': '007',
+        'NDEC': '012',
+    }
+    return switcher.get(tipo, "FACA")        
 
 
 def registro_valido(reg):

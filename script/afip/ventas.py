@@ -4,12 +4,13 @@ from unidecode import unidecode
 
 
 class Ventas:
-    def __init__(self, fecha, comprobante, terminal, numero):
+    def __init__(self, fecha, comprobante, terminal, numero, doc="80"):
         self.fecha = fecha
         self.comprobante = comprobante
         self.terminal = terminal
         self.numero = numero
         self.hasta = numero
+        self.doc = doc
         self.condicion_iva = 'I'
         self.cuit = ''
         self.nombre = ''
@@ -21,6 +22,7 @@ class Ventas:
         self.p_iva = 0
         self.ii = 0
         self.total = 0
+        self.__alicuotas = 0
 
     def __str__(self):
         linea = [
@@ -29,7 +31,7 @@ class Ventas:
             self.terminal,
             self.numero,
             self.hasta,
-            "80",
+            self.doc,
             self.cuit,
             self.nombre,
             self.total,
@@ -42,7 +44,7 @@ class Ventas:
             self.ii,
             "PES",
             "0001000000",
-            "1",
+            self.alicuotas,
             self.operacion,
             "0".rjust(15, "0"),
             "0".rjust(8, "0")
@@ -130,6 +132,14 @@ class Ventas:
         self.__hasta = valor
 
     @property
+    def doc(self):
+        return str(self.__doc)
+
+    @doc.setter
+    def doc(self, valor):
+        self.__doc = valor
+
+    @property
     def condicion_iva(self):
         return self.__condicion_iva
 
@@ -174,7 +184,15 @@ class Ventas:
 
     @property
     def no_gravado(self):
-        return format(abs(self.__no_gravado), '.2f').replace(".", "").rjust(15, '0')
+        # return format(abs(self.__no_gravado), '.2f').replace(".", "").rjust(15, '0')
+        valor = format(abs(self.__no_gravado), '.2f').replace(".", "")
+        if self.__no_gravado < 0 and self.__gravado > 0:
+            signo = "-"
+            largo = 14
+        else:
+            signo = ""
+            largo = 15
+        return signo + valor.rjust(largo, '0')
 
     @no_gravado.setter
     def no_gravado(self, valor):
@@ -280,22 +298,6 @@ class Ventas:
     def alicuotas(self, valor):
         self.__alicuotas = valor
 
-    def recalcular(self):
-        # calculamos el gravado en función de los impuestos
-        gravado = round(self.__iva21 / .21, 2) + \
-                  round(self.__iva10 / .105, 2)
-        iva = round(self.__iva21 + self.__iva10, 2)
-        otros = round(self.__p_ibb + self.__p_iva + self.__ii, 2)
-        total = round(self.__total, 2)
-        no_gravado = round(total - (gravado + iva + otros), 2)
-
-        if no_gravado != 0:
-            if abs(no_gravado) > 1:
-                self.__no_gravado = no_gravado
-            else:
-                # si son decimales los quitamos del gravado
-                self.gravado = gravado - no_gravado
-                self.__no_gravado = 0
 
     # alicuotas
     def __define_linea_iva(self):

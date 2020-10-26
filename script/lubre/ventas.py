@@ -33,8 +33,9 @@ def procesar(p_anio, p_mes):
         for reg in entrada:
             try:
                 if registro_valido(reg, p_anio, p_mes):
-                    venta = Ventas(reg['FECHA'], reg['TIPOCOMPROB'] + reg['LETRA'], 
-                                reg['TERMINAL'], reg['NUMERO'])
+                    venta = Ventas(reg['FECHA'], 
+                                   comprobante(reg['TIPOCOMPROB'] + reg['LETRA']), 
+                                   reg['TERMINAL'], reg['NUMERO'])
                     venta.cuit = reg['CUIT']
                     venta.nombre = normalizar_texto(reg['NOMBRE'])
                     venta.gravado = reg['GRAVADO']
@@ -46,16 +47,14 @@ def procesar(p_anio, p_mes):
                     venta.p_iva = reg['PERCIVA']
                     venta.total = reg['TOTAL']
                 
-                    # recalculamos el registro
-                    venta.recalcular()
-
                     file1.write(str(venta).replace('|', '') + '\n')
                     TOTAL += reg['TOTAL']
                     IVA += reg['IVA21'] + reg['OTROIVA']
                     for linea in venta.lineas_alicuotas():
                         file2.write(linea.replace('|', '') + '\n')
                 else:
-                    raise Exception('registro inválido')
+                    # raise Exception('registro inválido')
+                    print('registro descartado')
 
             except Exception as e:
                 log.write('IdFactura %s - %s \n' % (reg['IDFACTURA'], str(e)))
@@ -93,6 +92,23 @@ def str_to_date(date_text, p_month, p_year):
         return datetime.date(p_year, p_month, 1)
 
 
+def comprobante(tipo):
+    swiiher = {
+        'FACA': '001',
+        'FACB': '006',
+        'FACC': '011',
+        'LSGA': '090',
+        'LPRA': '003',
+        'NCRA': '003',
+        'NCRB': '008',
+        'NCRC': '013',
+        'NDEA': '002',
+        'NDEB': '007',
+        'NDEC': '012',
+    }
+    return swiiher.get(tipo, "FACA")
+
+
 def registro_valido(reg, p_anio, p_mes):
     # comprobamos que la fecha sea válida y que esté en el mes correcto
     reg['FECHA'] = str_to_date(reg['FECHA'], p_mes, p_anio)
@@ -112,6 +128,9 @@ def registro_valido(reg, p_anio, p_mes):
         # si tiene IVA ponemos letra A
         reg['LETRA'] = ['A','C'][reg['IVA21'] + reg['OTROIVA'] == 0]
 
+    if reg['GRAVADO'] != round((reg['IVA21'] / .21) + (reg['OTROIVA'] / .105), 2):
+        recalcular(reg)
+
     return True
 
 
@@ -127,6 +146,25 @@ def normalizar_texto(s):
     for a, b in replacements:
         s = s.replace(a, b).replace(a.upper(), b.upper())
     return s
+
+
+def recalcular(reg):
+    # calculamos el gravado en función de los impuestos
+    gravado = round((reg['IVA21'] / .21) + \
+                    (reg['OTROIVA'] / .105), 2)
+    iva = round(reg['IVA21'] + reg['OTROIVA'], 2)
+    otros = round(reg['IMPINT'] + reg['PERCIB'] + reg['PERCIVA'], 2)
+    total = reg['TOTAL']
+    no_gravado = round(total - (gravado + iva + otros), 2)
+
+    if no_gravado != 0:
+        reg['GRAVADO'] = gravado
+        reg['NOGRAVA'] = 0
+        if abs(no_gravado) > 1:
+            reg['NOGRAVA'] = no_gravado
+        else:
+            # si son decimales los quitamos del gravado
+            reg['TOTAL'] = round(total - no_gravado, 2)
 
 
 # if __name__ == "__main__":

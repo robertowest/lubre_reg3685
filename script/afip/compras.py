@@ -3,11 +3,12 @@ from dateutil.parser import *
 from unidecode import unidecode
 
 class Compras:
-    def __init__(self, fecha, comprobante, terminal, numero):
+    def __init__(self, fecha, comprobante, terminal, numero, doc="80"):
         self.fecha = fecha
         self.comprobante = comprobante
         self.terminal = terminal
         self.numero = numero
+        self.__doc = doc
         self.cuit = ''
         self.nombre = ''
         self.gravado = 0
@@ -28,7 +29,7 @@ class Compras:
             self.terminal,
             self.numero,
             "".rjust(16, " "),
-            "80",
+            self.__doc,
             self.cuit,
             self.nombre,
             self.total,
@@ -70,33 +71,7 @@ class Compras:
 
     @property
     def comprobante(self):
-        switcher = {
-            # comprobantes LUBRE
-            'FACA': '001',
-            'FACB': '006',
-            'FACC': '011',
-            'LSGA': '090',
-            'NCRA': '003',
-            'NCRB': '008',
-            'NCRC': '013',
-            'NDEA': '002',
-            'NDEB': '007',
-            'NDEC': '012',
-            # comprobantes DEBO
-            'FT A': '001',
-            'FT B': '006',
-            'FT C': '011',
-            'ND A': '002',
-            'ND B': '007',
-            'ND C': '012',
-            'NC A': '003',
-            'NC B': '008',
-            'NC C': '013',
-            'CI A': '111',
-            'CI B': '222',
-            'RE R': '333',
-        }
-        return switcher.get(self.__comprobante, "FACA")        
+        return str(self.__comprobante).rjust(3, '0')
 
     @comprobante.setter
     def comprobante(self, valor):
