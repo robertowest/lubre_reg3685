@@ -32,7 +32,7 @@ def procesar(p_anio, p_mes):
         entrada = csv.DictReader(csvarchivo, delimiter=';', quoting=csv.QUOTE_NONE)
         for reg in entrada:
             try:
-                if registro_valido(reg, p_anio, p_mes):
+                if validar_registro(reg, p_anio, p_mes):
                     venta = Ventas(reg['FECHA'], 
                                    comprobante(reg['TIPOCOMPROB'] + reg['LETRA']), 
                                    reg['TERMINAL'], reg['NUMERO'])
@@ -78,10 +78,43 @@ def procesar(p_anio, p_mes):
         else:
             print('Se encontraron {} errores'.format(ERRORES))
         print('Revise el log de errores {}'.format(LOG_ERROR))
-    input("Pulse [enter] tecla para continuar ...")
+    input("\nPulse [enter] tecla para continuar ...")
 
 
-def str_to_date(date_text, p_month, p_year):
+def validar_registro(reg, p_anio, p_mes):
+    # comprobamos que la fecha sea válida y que esté en el mes correcto
+    reg['FECHA'] = cadena_a_fecha(reg['FECHA'], p_mes, p_anio)
+
+    # redondeamos los valores
+    reg['GRAVADO'] = decimal(reg['GRAVADO'])
+    reg['NOGRAVA'] = decimal(reg['NOGRAVA'])
+    reg['IVA21']   = decimal(reg['IVA21'])
+    reg['OTROIVA'] = decimal(reg['OTROIVA'])
+    reg['IMPINT']  = decimal(reg['IMPINT'])
+    reg['PERCIB']  = decimal(reg['PERCIB'])
+    reg['PERCIVA'] = decimal(reg['PERCIVA'])
+    reg['TOTAL']   = decimal(reg['TOTAL'])
+
+    # comprobamos que no falte letra del comprobante
+    if reg['LETRA'] == '':
+        # si tiene IVA ponemos letra A
+        reg['LETRA'] = ['A','C'][reg['IVA21'] + reg['OTROIVA'] == 0]
+
+    if reg['GRAVADO'] != round((reg['IVA21'] / .21) + (reg['OTROIVA'] / .105), 2):
+        recalcular(reg)
+
+    return True
+
+
+def decimal(value):
+    if value.strip() == '':
+        value = 0
+    if type(value) == str:
+        value = float(value.replace(",","."))
+    return round(value, 2)
+
+
+def cadena_a_fecha(date_text, p_month, p_year):
     try:
         mydate = datetime.datetime.strptime(date_text, '%d/%m/%Y')
         if mydate.month != p_month:
@@ -93,45 +126,27 @@ def str_to_date(date_text, p_month, p_year):
 
 
 def comprobante(tipo):
-    swiiher = {
-        'FACA': '001',
-        'FACB': '006',
-        'FACC': '011',
-        'LSGA': '090',
-        'LPRA': '003',
-        'NCRA': '003',
-        'NCRB': '008',
-        'NCRC': '013',
-        'NDEA': '002',
-        'NDEB': '007',
-        'NDEC': '012',
+    switcher = {
+        "FACA": "001",
+        "FACB": "006",
+        "FACC": "011",
+        "LSGA": "090",
+        "LPRA": "003",
+        "NCRA": "003",
+        "NCRB": "008",
+        "NCRC": "013",
+        "NDEA": "002",
+        "NDEB": "007",
+        "NDEC": "012",
     }
     return swiiher.get(tipo, "FACA")
 
 
-def registro_valido(reg, p_anio, p_mes):
-    # comprobamos que la fecha sea válida y que esté en el mes correcto
-    reg['FECHA'] = str_to_date(reg['FECHA'], p_mes, p_anio)
-
-    # redondeamos los valores
-    reg['GRAVADO'] = round(float(reg['GRAVADO'].replace(",",".")), 2)
-    reg['NOGRAVA'] = round(float(reg['NOGRAVA'].replace(",",".")), 2)
-    reg['IVA21'] = round(float(reg['IVA21'].replace(",",".")), 2)
-    reg['OTROIVA'] = round(float(reg['OTROIVA'].replace(",",".")), 2)
-    reg['IMPINT'] = round(float(reg['IMPINT'].replace(",",".")), 2)
-    reg['PERCIB'] = round(float(reg['PERCIB'].replace(",",".")), 2)
-    reg['PERCIVA'] = round(float(reg['PERCIVA'].replace(",",".")), 2)
-    reg['TOTAL'] = round(float(reg['TOTAL'].replace(",",".")), 2)
-
-    # comprobamos que no falte letra del comprobante
-    if reg['LETRA'] == '':
-        # si tiene IVA ponemos letra A
-        reg['LETRA'] = ['A','C'][reg['IVA21'] + reg['OTROIVA'] == 0]
-
-    if reg['GRAVADO'] != round((reg['IVA21'] / .21) + (reg['OTROIVA'] / .105), 2):
-        recalcular(reg)
-
-    return True
+def controlar_cuit(cuit):
+    cuit = "".join([x for x in self.__cuit if x.isdigit()])
+    if cuit == "30710051859":   # si el CUIT es el de Lubre, lo cambiamos
+        cuit = "20123456786"
+    return cuit.rjust(20, "0")
 
 
 def normalizar_texto(s):
@@ -165,7 +180,3 @@ def recalcular(reg):
         else:
             # si son decimales los quitamos del gravado
             reg['TOTAL'] = round(total - no_gravado, 2)
-
-
-# if __name__ == "__main__":
-#     procesar()

@@ -29,7 +29,7 @@ if __name__ == "__main__":
         menu()
 
         # solicituamos una opción al usuario
-        opcionMenu = input("Selecciona una opción >> ")
+        opcionMenu = input("\nSelecciona una opción >> ")
 
         if opcionMenu == "1":
             os.system('clear')
@@ -58,5 +58,4 @@ if __name__ == "__main__":
             break
 
         else:
-            print ("")
-            input("Selecciona una opción válida...\npulsa una tecla para continuar")
+            input("\nSelecciona una opción válida...\npulsa una tecla para continuar")

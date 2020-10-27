@@ -35,7 +35,7 @@ def procesar(p_anio, p_mes):
         for reg in entrada:
             try:
                 if (reg['Cliente'] != '**ANULADA**'):
-                    if registro_valido(reg, p_anio, p_mes):
+                    if validar_registro(reg, p_anio, p_mes):
                         # fecha, tc + letra, terminal, numero
                         venta = Ventas(reg['Fecha'], 
                                        comprobante(reg['TCO'] + reg['N. Comprobante'][0:1]),
@@ -87,10 +87,10 @@ def procesar(p_anio, p_mes):
         else:
             print('Se encontraron {} errores'.format(ERRORES))
         print('Revise el log de errores {}'.format(LOG_ERROR))
-    input("Pulse [enter] tecla para continuar ...")
+    input("\nPulse [enter] tecla para continuar ...")
 
 
-def str_to_date(date_text, p_month, p_year):
+def cadena_a_fecha(date_text, p_month, p_year):
     try:
         mydate = datetime.datetime.strptime(date_text, '%d/%m/%Y')
         if mydate.month != p_month:
@@ -103,25 +103,25 @@ def str_to_date(date_text, p_month, p_year):
 
 def comprobante(tipo):
     swiiher = {
-        'CIA': '111',
-        'CIB': '222',
-        'FTA': '001',
-        'FTB': '006',
-        'FTC': '011',
-        'NDA': '002',
-        'NDB': '007',
-        'NDC': '012',
-        'NCA': '003',
-        'NCB': '008',
-        'NCC': '013',
-        'RER': '333',
-        'TIA': '081',
-        'TIB': '082',
+        "CIA": "111",
+        "CIB": "222",
+        "FTA": "001",
+        "FTB": "006",
+        "FTC": "011",
+        "NDA": "002",
+        "NDB": "007",
+        "NDC": "012",
+        "NCA": "003",
+        "NCB": "008",
+        "NCC": "013",
+        "RER": "333",
+        "TIA": "081",
+        "TIB": "082",
     }
     return swiiher.get(tipo, "TIA")   
 
 
-def registro_valido(reg, p_anio, p_mes):
+def validar_registro(reg, p_anio, p_mes):
     reg['DOC'] = "80"
     if reg['N. Comprobante'][:1] == "B":
         # corregimos los comprobantes duplicados, el listado de DEBO tiene errores al 
@@ -135,7 +135,7 @@ def registro_valido(reg, p_anio, p_mes):
 
         # definimos el tipo de DOC según corresponda
         if reg['CUIT'] == "" or reg['Cliente'] == "":
-            if convert_float(reg['Total']) > 1000:
+            if decimal(reg['Total']) > 1000:
                 reg['DOC'] = "96"
                 reg['CUIT'] = "12345678"
                 reg['Cliente'] = "Consumidor Final"
@@ -144,20 +144,20 @@ def registro_valido(reg, p_anio, p_mes):
                 reg['Cliente'] = "Consumidor Final"
 
     # comprobamos que la fecha sea válida y que esté en el mes correcto
-    reg['Fecha'] = str_to_date(reg['Fecha'][0:10], p_mes, p_anio)
+    reg['Fecha'] = cadena_a_fecha(reg['Fecha'][0:10], p_mes, p_anio)
 
     # redondeamos los valores
-    reg['Neto']         = convert_float(reg['Neto'])
-    reg['Exento']       = convert_float(reg['Exento'])
-    reg['IVA']          = convert_float(reg['IVA'])
-    reg['IVA 10.5']     = convert_float(reg['IVA 10.5'])
-    reg['IVA Otros']    = convert_float(reg['IVA Otros'])
-    reg['ImpInternos']  = convert_float(reg['ImpInternos'])
-    reg['ImpInt 1']     = convert_float(reg['ImpInt 1'])
-    reg['Redondeo']     = convert_float(reg['Redondeo'])
-    reg['Percep']       = convert_float(reg['Percep'])
-    reg['Perc. I.V.A.'] = convert_float(reg['Perc. I.V.A.'])
-    reg['Total']        = convert_float(reg['Total'])
+    reg['Neto']         = decimal(reg['Neto'])
+    reg['Exento']       = decimal(reg['Exento'])
+    reg['IVA']          = decimal(reg['IVA'])
+    reg['IVA 10.5']     = decimal(reg['IVA 10.5'])
+    reg['IVA Otros']    = decimal(reg['IVA Otros'])
+    reg['ImpInternos']  = decimal(reg['ImpInternos'])
+    reg['ImpInt 1']     = decimal(reg['ImpInt 1'])
+    reg['Redondeo']     = decimal(reg['Redondeo'])
+    reg['Percep']       = decimal(reg['Percep'])
+    reg['Perc. I.V.A.'] = decimal(reg['Perc. I.V.A.'])
+    reg['Total']        = decimal(reg['Total'])
 
     # control de redondeo
     if reg['Neto'] != round((reg['IVA'] / .21) + (reg['IVA 10.5'] / .105), 2):
@@ -170,7 +170,7 @@ def registro_valido(reg, p_anio, p_mes):
     return True
 
 
-def convert_float(value):
+def decimal(value):
     if value.strip() == '':
         value = 0
     if type(value) == str:

@@ -34,16 +34,14 @@ def procesar(p_anio, p_mes):
         entrada = csv.DictReader(csvarchivo, delimiter=';', quoting=csv.QUOTE_NONE)
         for reg in entrada:
             try:
-                if registro_valido(reg):
-                    # comprobamos que la fecha sea válida y que esté en el mes correcto
-                    reg['Fecha'] = str_to_date(reg['Fecha'], p_mes, p_anio)
-
+                if validar_registro(reg, p_mes, p_anio):
                     # Fecha, Tipo Comprobante + Letra, Terminal, Numero
+                    # comprobante(reg['N. Comprobante'][0:3] + reg['N. Comprobante'][3:4]),
                     compra = Compras(reg['Fecha'], 
-                                     reg['N. Comprobante'][0:3] + reg['N. Comprobante'][3:4],
+                                     comprobante(reg['TCO'] + reg['N. Comprobante'][3:4]),
                                      reg['N. Comprobante'][5:9],
                                      reg['N. Comprobante'][10:18])
-                    compra.cuit = reg['CUIT'][3:16]
+                    compra.cuit = controlar_cuit(reg['CUIT'][3:16])
                     compra.nombre = normalizar_texto(reg['Proveedor'][6:36])
                     compra.gravado = reg['Neto   ']
                     compra.no_gravado = reg['N.Exento']
@@ -55,19 +53,14 @@ def procesar(p_anio, p_mes):
                     compra.itc = reg['Imp. Int.']
                     compra.total = reg['Total']
 
-                    # recalculamos el registro
-                    compra.recalcular()
-                
                     file1.write(str(compra).replace('|', '') + '\n')
                     TOTAL += reg['Total']
                     IVA += reg['IVA R.'] + reg['IVA 10.5'] + reg['IVA 27']
                     for linea in compra.lineas_alicuotas():
                             file2.write(linea.replace('|', '') + '\n')
+
                 else:
-                    # raise('Letra de comprobante distinto de A')
-                    log.write('%s - %s \n' % 
-                        (reg['N. Comprobante'], 'Letra de comprobante distinto de A')
-                    )
+                    log.write('%s - registro inválido\n' % reg['N. Comprobante'])
 
             except Exception as e:
                 log.write('%s - %s \n' % 
@@ -93,10 +86,39 @@ def procesar(p_anio, p_mes):
         else:
             print('Se encontraron {} errores'.format(ERRORES))
         print('Revise el log de errores {}'.format(LOG_ERROR))
-    input("Pulse [enter] tecla para continuar ...")
+    input("\nPulse [enter] tecla para continuar ...")
 
 
-def str_to_date(date_text, p_month, p_year):
+def validar_registro(reg, p_mes, p_anio):
+    # comprobamos que la fecha sea válida y que esté en el mes correcto
+    reg['Fecha'] = cadena_a_fecha(reg['Fecha'], p_mes, p_anio)
+
+    # descartamos los comprobante que no sea de tipo A
+    if reg['N. Comprobante'][3:4] != 'A':
+        return False
+
+    # redondeamos los valores numéricos
+    reg['IVA R.']   = decimal(reg['IVA R.'])
+    reg['IVA 27']   = decimal(reg['IVA 27'])
+    reg['IVA 10.5'] = decimal(reg['IVA 10.5'])
+
+    # descartamos los comprobante que no tienen IVA
+    if (reg['IVA R.'] + reg['IVA 27'] + reg['IVA 10.5']) == 0:
+        return False
+
+    reg['Neto   ']     = decimal(reg['Neto   '])
+    reg['N.Exento']    = decimal(reg['N.Exento'])
+    reg['Per.I.Btos.'] = decimal(reg['Per.I.Btos.'])
+    reg['Per. IVA']    = decimal(reg['Per. IVA'])
+    reg['Imp. Int.']   = decimal(reg['Imp. Int.'])
+    reg['Total']       = decimal(reg['Total'])
+
+    recalcular(reg)
+
+    return True
+
+
+def cadena_a_fecha(date_text, p_month, p_year):
     try:
         mydate = datetime.datetime.strptime(date_text, '%d/%m/%Y')
         if mydate.month != p_month:
@@ -107,44 +129,39 @@ def str_to_date(date_text, p_month, p_year):
         return datetime.date(p_year, p_month, 1)
 
 
-def comprobante(self):
+def decimal(value):
+    if value.strip() == '':
+        value = 0
+    if type(value) == str:
+        value = float(value.replace(",","."))
+    return round(value, 2)
+
+
+def comprobante(tipo):
     switcher = {
-        'FT A': '001',
-        'FT B': '006',
-        'FT C': '011',
-        'ND A': '002',
-        'ND B': '007',
-        'ND C': '012',
-        'NC A': '003',
-        'NC B': '008',
-        'NC C': '013',
-        'CI A': '111',
-        'CI B': '222',
-        'RE R': '333',
+        "CIA": "111",
+        "CIB": "222",
+        "FTA": "001",
+        "FTB": "006",
+        "FTC": "011",
+        "NDA": "002",
+        "NDB": "007",
+        "NDC": "012",
+        "NCA": "003",
+        "NCB": "008",
+        "NCC": "013",
+        "RER": "333",
+        "TIA": "081",
+        "TIB": "082",
     }
-    return switcher.get(tipo, "FT A") 
+    return switcher.get(tipo, "FTA") 
 
 
-def registro_valido(reg):
-    # descartamos los comprobante que no sea de tipo A
-    if reg['N. Comprobante'][3:4] != 'A':
-        return False
-
-    # redondeamos los valores numéricos
-    reg['IVA R.'] = round(float(reg['IVA R.'].replace(",",".")), 2)
-    reg['IVA 27'] = round(float(reg['IVA 27'].replace(",",".")), 2)
-    reg['IVA 10.5'] = round(float(reg['IVA 10.5'].replace(",",".")), 2)
-    if (reg['IVA R.'] + reg['IVA 27'] + reg['IVA 10.5']) == 0:
-        return False
-
-    reg['Neto   '] = round(float(reg['Neto   '].replace(",",".")), 2)
-    reg['N.Exento'] = round(float(reg['N.Exento'].replace(",",".")), 2)
-    reg['Per.I.Btos.'] = round(float(reg['Per.I.Btos.'].replace(",",".")), 2)
-    reg['Per. IVA'] = round(float(reg['Per. IVA'].replace(",",".")), 2)
-    reg['Imp. Int.'] = round(float(reg['Imp. Int.'].replace(",",".")), 2)
-    reg['Total'] = round(float(reg['Total'].replace(",",".")), 2)
-
-    return True
+def controlar_cuit(cuit):
+    cuit = "".join([x for x in cuit if x.isdigit()])
+    if cuit == "30710051859":   # si el CUIT es el de Lubre, lo cambiamos
+        cuit = "20123456786"
+    return cuit.rjust(20, "0")
 
 
 def normalizar_texto(s):
@@ -161,5 +178,20 @@ def normalizar_texto(s):
     return s
 
 
-# if __name__ == "__main__":
-#     procesar()
+def recalcular(reg):
+    # calculamos el gravado en función de los impuestos
+    gravado    = round(reg['IVA R.'] / .21, 2) + \
+                 round(reg['IVA 10.5'] / .105, 2) + \
+                 round(reg['IVA 27'] / .27, 2)
+    iva        = round(reg['IVA R.'] + reg['IVA 10.5'] + reg['IVA 27'], 2)
+    otros      = round(reg['Per.I.Btos.'] + reg['Per. IVA'] + reg['Imp. Int.'])
+    total      = round(reg['Total'], 2)
+    no_gravado = round(total - (gravado + iva + otros), 2)
+
+    if no_gravado != 0:
+        if abs(no_gravado) > 1:
+            reg['N.Exento'] = no_gravado
+        else:
+            # si son decimales los quitamos del gravado
+            reg['Neto   '] = gravado - no_gravado
+            reg['N.Exento'] = 0

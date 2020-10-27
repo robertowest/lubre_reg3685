@@ -8,9 +8,9 @@ class Compras:
         self.comprobante = comprobante
         self.terminal = terminal
         self.numero = numero
-        self.__doc = doc
-        self.cuit = ''
-        self.nombre = ''
+        self.doc = doc
+        self.cuit = ""
+        self.nombre = ""
         self.gravado = 0
         self.no_gravado = 0
         self.iva21 = 0
@@ -29,7 +29,7 @@ class Compras:
             self.terminal,
             self.numero,
             "".rjust(16, " "),
-            self.__doc,
+            self.doc,
             self.cuit,
             self.nombre,
             self.total,
@@ -56,7 +56,7 @@ class Compras:
     def fecha(self):
         # if type(self.__fecha) is date:
         if isinstance(self.__fecha, (date, datetime)):
-            return str(self.__fecha.strftime('%Y%m%d'))
+            return str(self.__fecha.strftime("%Y%m%d"))
         else:
             return "".join([x for x in self.__fecha if x.isdigit()])
 
@@ -71,7 +71,7 @@ class Compras:
 
     @property
     def comprobante(self):
-        return str(self.__comprobante).rjust(3, '0')
+        return str(self.__comprobante).rjust(3, "0")
 
     @comprobante.setter
     def comprobante(self, valor):
@@ -79,9 +79,9 @@ class Compras:
 
     @property
     def terminal(self):
-        if self.__terminal == '0':
-            self.__terminal = '1'
-        return str(self.__terminal).rjust(5, '0')
+        if self.__terminal == "0":
+            self.__terminal = "1"
+        return str(self.__terminal).rjust(5, "0")
 
     @terminal.setter
     def terminal(self, valor):
@@ -89,18 +89,23 @@ class Compras:
 
     @property
     def numero(self):
-        return str(self.__numero).rjust(20, '0')
+        return str(self.__numero).rjust(20, "0")
 
     @numero.setter
     def numero(self, valor):
         self.__numero = valor
 
     @property
+    def doc(self):
+        return self.__doc.rjust(2, "0")
+
+    @doc.setter
+    def doc(self, valor):
+        self.__doc = valor[0:2].strip()
+
+    @property
     def cuit(self):
-        cuit = "".join([x for x in self.__cuit if x.isdigit()])
-        if cuit == "30710051859":   # si el CUIT es el de Lubre, lo cambiamos
-            cuit = "20123456786"
-        return cuit.rjust(20, '0')
+        return self.__cuit.rjust(20, "0")
 
     @cuit.setter
     def cuit(self, valor):
@@ -108,7 +113,7 @@ class Compras:
 
     @property
     def nombre(self):        
-        return unidecode(self.__nombre).ljust(30, ' ')
+        return unidecode(self.__nombre).ljust(30, " ")
 
     @nombre.setter
     def nombre(self, valor):
@@ -116,7 +121,7 @@ class Compras:
 
     @property
     def gravado(self):
-        return format(abs(self.__gravado), '.2f').replace(".", "").rjust(15, '0')
+        return format(abs(self.__gravado), ".2f").replace(".", "").rjust(15, "0")
 
     @gravado.setter
     def gravado(self, valor):
@@ -127,7 +132,14 @@ class Compras:
 
     @property
     def no_gravado(self):
-        return format(abs(self.__no_gravado), '.2f').replace(".", "").rjust(15, '0')
+        valor = format(abs(self.__no_gravado), ".2f").replace(".", "")
+        if self.__no_gravado < 0 and self.__gravado > 0:
+            signo = "-"
+            largo = 14
+        else:
+            signo = ""
+            largo = 15
+        return signo + valor.rjust(largo, "0")
 
     @no_gravado.setter
     def no_gravado(self, valor):
@@ -138,7 +150,7 @@ class Compras:
 
     @property
     def iva21(self):
-        return format(abs(self.__iva21), '.2f').replace(".", "").rjust(15, '0')
+        return format(abs(self.__iva21), ".2f").replace(".", "").rjust(15, "0")
 
     @iva21.setter
     def iva21(self, valor):
@@ -149,7 +161,7 @@ class Compras:
 
     @property
     def iva10(self):
-        return format(abs(self.__iva10), '.2f').replace(".", "").rjust(15, '0')
+        return format(abs(self.__iva10), ".2f").replace(".", "").rjust(15, "0")
 
     @iva10.setter
     def iva10(self, valor):
@@ -160,7 +172,7 @@ class Compras:
 
     @property
     def iva27(self):
-        return format(abs(self.__iva27), '.2f').replace(".", "").rjust(15, '0')
+        return format(abs(self.__iva27), ".2f").replace(".", "").rjust(15, "0")
 
     @iva27.setter
     def iva27(self, valor):
@@ -171,7 +183,7 @@ class Compras:
 
     @property
     def p_ibb(self):
-        return format(abs(self.__p_ibb), '.2f').replace(".", "").rjust(15, '0')
+        return format(abs(self.__p_ibb), ".2f").replace(".", "").rjust(15, "0")
 
     @p_ibb.setter
     def p_ibb(self, valor):
@@ -182,7 +194,7 @@ class Compras:
 
     @property
     def p_iva(self):
-        return format(abs(self.__p_iva), '.2f').replace(".", "").rjust(15, '0')
+        return format(abs(self.__p_iva), ".2f").replace(".", "").rjust(15, "0")
 
     @p_iva.setter
     def p_iva(self, valor):
@@ -193,7 +205,7 @@ class Compras:
 
     @property
     def itc(self):
-        return format(abs(self.__itc), '.2f').replace(".", "").rjust(15, '0')
+        return format(abs(self.__itc), ".2f").replace(".", "").rjust(15, "0")
 
     @itc.setter
     def itc(self, valor):
@@ -204,7 +216,7 @@ class Compras:
 
     @property
     def total(self):
-        return format(abs(self.__total), '.2f').replace(".", "").rjust(15, '0')
+        return format(abs(self.__total), ".2f").replace(".", "").rjust(15, "0")
 
     @total.setter
     def total(self, valor):
@@ -228,23 +240,6 @@ class Compras:
     def alicuotas(self, valor):
         self.__alicuotas = valor
 
-    def recalcular(self):
-        # calculamos el gravado en función de los impuestos
-        gravado = round(self.__iva21 / .21, 2) + \
-                  round(self.__iva10 / .105, 2) + \
-                  round(self.__iva27 / .27, 2)
-        iva = round(self.__iva21 + self.__iva10 + self.__iva27, 2)
-        otros = round(self.__p_ibb + self.__p_iva + self.__itc, 2)
-        total = round(self.__total, 2)
-        no_gravado = round(total - (gravado + iva + otros), 2)
-
-        if no_gravado != 0:
-            if abs(no_gravado) > 1:
-                self.__no_gravado = no_gravado
-            else:
-                # si son decimales los quitamos del gravado
-                self.gravado = gravado - no_gravado
-                self.__no_gravado = 0
 
     # alicuotas
     def __define_linea_iva(self):
@@ -252,13 +247,13 @@ class Compras:
             self.comprobante,
             self.terminal,
             self.numero,
-            "80",
+            self.doc,
             self.cuit
         ]
 
     def __valor_iva(self, iva, porcentaje, largo):
         neto = round(abs(iva) / porcentaje, 2)
-        return format(neto, '.2f').replace(".", "").rjust(largo, '0')
+        return format(neto, ".2f").replace(".", "").rjust(largo, "0")
 
     def lineas_alicuotas(self):
         lineas = []
@@ -288,9 +283,9 @@ class Compras:
 
 
 if __name__ == "__main__":
-    c = Compras('1/3/20', 'FACA', 101, 1245)
-    c.cuit = '30-71005185-9'
-    c.nombre = 'EDUARDO MARCELO ACUNA'
+    c = Compras("1/3/20", "FACA", 101, 1245)
+    c.cuit = "30710051859"
+    c.nombre = "EDUARDO MARCELO ACUÑA"
     c.gravado = 27123.03
     c.iva21 = 4733.93
     c.iva10 = 1174.91

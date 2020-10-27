@@ -11,9 +11,9 @@ class Ventas:
         self.numero = numero
         self.hasta = numero
         self.doc = doc
-        self.condicion_iva = 'I'
-        self.cuit = ''
-        self.nombre = ''
+        self.condicion_iva = "I"
+        self.cuit = ""
+        self.nombre = ""
         self.gravado = 0
         self.no_gravado = 0
         self.iva21 = 0
@@ -55,7 +55,7 @@ class Ventas:
     def fecha(self):
         # if type(self.__fecha) is date:
         if isinstance(self.__fecha, (date, datetime)):
-            return str(self.__fecha.strftime('%Y%m%d'))
+            return str(self.__fecha.strftime("%Y%m%d"))
         else:
             return "".join([x for x in self.__fecha if x.isdigit()])
 
@@ -70,36 +70,7 @@ class Ventas:
 
     @property
     def comprobante(self):
-        swiiher = {
-            # comprobantes LUBRE
-            'FACA': '001',
-            'FACB': '006',
-            'FACC': '011',
-            'LSGA': '090',
-            'LPRA': '003',
-            'NCRA': '003',
-            'NCRB': '008',
-            'NCRC': '013',
-            'NDEA': '002',
-            'NDEB': '007',
-            'NDEC': '012',
-            # comprobantes DEBO
-            'CIA': '111',
-            'CIB': '222',
-            'FTA': '001',
-            'FTB': '006',
-            'FTC': '011',
-            'NDA': '002',
-            'NDB': '007',
-            'NDC': '012',
-            'NCA': '003',
-            'NCB': '008',
-            'NCC': '013',
-            'RER': '333',
-            'TIA': '081',
-            'TIB': '082',
-        }
-        return swiiher.get(self.__comprobante, "FACA")        
+        return str(self.__comprobante).rjust(3, "0")
 
     @comprobante.setter
     def comprobante(self, valor):
@@ -107,9 +78,9 @@ class Ventas:
 
     @property
     def terminal(self):
-        if self.__terminal == '0':
-            self.__terminal = '1'
-        return str(self.__terminal).rjust(5, '0')
+        if self.__terminal == "0":
+            self.__terminal = "1"
+        return str(self.__terminal).rjust(5, "0")
 
     @terminal.setter
     def terminal(self, valor):
@@ -117,7 +88,7 @@ class Ventas:
 
     @property
     def numero(self):
-        return str(self.__numero).rjust(20, '0')
+        return str(self.__numero).rjust(20, "0")
 
     @numero.setter
     def numero(self, valor):
@@ -125,7 +96,7 @@ class Ventas:
 
     @property
     def hasta(self):
-        return str(self.__hasta).rjust(20, '0')
+        return str(self.__hasta).rjust(20, "0")
 
     @hasta.setter
     def hasta(self, valor):
@@ -133,11 +104,11 @@ class Ventas:
 
     @property
     def doc(self):
-        return str(self.__doc)
+        return self.__doc.rjust(2, "0")
 
     @doc.setter
     def doc(self, valor):
-        self.__doc = valor
+        self.__doc = valor[0:2].strip()
 
     @property
     def condicion_iva(self):
@@ -154,10 +125,7 @@ class Ventas:
 
     @property
     def cuit(self):
-        cuit = "".join([x for x in self.__cuit if x.isdigit()])
-        if cuit == "30710051859":   # si el CUIT es el de Lubre, lo cambiamos
-            cuit = "20123456786"
-        return cuit.rjust(20, '0')
+        return self.__cuit.rjust(20, "0")
 
     @cuit.setter
     def cuit(self, valor):
@@ -165,7 +133,7 @@ class Ventas:
 
     @property
     def nombre(self):        
-        return unidecode(self.__nombre).ljust(30, ' ')
+        return unidecode(self.__nombre).ljust(30, " ")
 
     @nombre.setter
     def nombre(self, valor):
@@ -173,7 +141,7 @@ class Ventas:
 
     @property
     def gravado(self):
-        return format(abs(self.__gravado), '.2f').replace(".", "").rjust(15, '0')
+        return format(abs(self.__gravado), ".2f").replace(".", "").rjust(15, "0")
 
     @gravado.setter
     def gravado(self, valor):
@@ -184,15 +152,14 @@ class Ventas:
 
     @property
     def no_gravado(self):
-        # return format(abs(self.__no_gravado), '.2f').replace(".", "").rjust(15, '0')
-        valor = format(abs(self.__no_gravado), '.2f').replace(".", "")
+        valor = format(abs(self.__no_gravado), ".2f").replace(".", "")
         if self.__no_gravado < 0 and self.__gravado > 0:
             signo = "-"
             largo = 14
         else:
             signo = ""
             largo = 15
-        return signo + valor.rjust(largo, '0')
+        return signo + valor.rjust(largo, "0")
 
     @no_gravado.setter
     def no_gravado(self, valor):
@@ -203,7 +170,7 @@ class Ventas:
 
     @property
     def iva21(self):
-        return format(abs(self.__iva21), '.2f').replace(".", "").rjust(15, '0')
+        return format(abs(self.__iva21), ".2f").replace(".", "").rjust(15, "0")
 
     @iva21.setter
     def iva21(self, valor):
@@ -214,7 +181,7 @@ class Ventas:
 
     @property
     def iva10(self):
-        return format(abs(self.__iva10), '.2f').replace(".", "").rjust(15, '0')
+        return format(abs(self.__iva10), ".2f").replace(".", "").rjust(15, "0")
 
     @iva10.setter
     def iva10(self, valor):
@@ -225,7 +192,7 @@ class Ventas:
 
     @property
     def p_ibb(self):
-        return format(abs(self.__p_ibb), '.2f').replace(".", "").rjust(15, '0')
+        return format(abs(self.__p_ibb), ".2f").replace(".", "").rjust(15, "0")
 
     @p_ibb.setter
     def p_ibb(self, valor):
@@ -236,7 +203,7 @@ class Ventas:
 
     @property
     def p_iva(self):
-        return format(abs(self.__p_iva), '.2f').replace(".", "").rjust(15, '0')
+        return format(abs(self.__p_iva), ".2f").replace(".", "").rjust(15, "0")
 
     @p_iva.setter
     def p_iva(self, valor):
@@ -247,7 +214,7 @@ class Ventas:
 
     @property
     def ii(self):
-        return format(abs(self.__ii), '.2f').replace(".", "").rjust(15, '0')
+        return format(abs(self.__ii), ".2f").replace(".", "").rjust(15, "0")
 
     @ii.setter
     def ii(self, valor):
@@ -256,20 +223,9 @@ class Ventas:
         else:
             self.__ii = round(valor, 2)
 
-    # @property
-    # def otro_iva(self):
-    #     return format(abs(self.__otro_iva), '.2f').replace(".", "").rjust(15, '0')
-
-    # @otro_iva.setter
-    # def otro_iva(self, valor):
-    #     if type(valor) == str:
-    #         self.__otro_iva = round(float(valor), 2)
-    #     else:
-    #         self.__otro_iva = round(valor, 2)
-
     @property
     def total(self):
-        return format(abs(self.__total), '.2f').replace(".", "").rjust(15, '0')
+        return format(abs(self.__total), ".2f").replace(".", "").rjust(15, "0")
 
     @total.setter
     def total(self, valor):
@@ -281,9 +237,9 @@ class Ventas:
     @property
     def operacion(self):
         if (self.__no_gravado == self.__total):
-            return 'N'
+            return "N"
         else:
-            return '0'
+            return "0"
 
     @property
     def alicuotas(self):
@@ -309,7 +265,7 @@ class Ventas:
 
     def __valor_iva(self, iva, porcentaje, largo):
         neto = round(iva / porcentaje, 2)
-        return format(abs(neto), '.2f').replace(".", "").rjust(largo, '0')
+        return format(abs(neto), ".2f").replace(".", "").rjust(largo, "0")
 
     def lineas_alicuotas(self):
         # 002-00050-00000000000000000002-000000000413223-0005-000000000086777
@@ -330,3 +286,20 @@ class Ventas:
             lineas.append("|".join(linea2))
 
         return lineas
+
+
+if __name__ == "__main__":
+    c = Ventas("1/3/20", 1, 101, 1245)
+    c.condicion_iva = "I"
+    c.cuit = "30710051859"
+    c.nombre = "EDUARDO MARCELO ACUÑA"
+    c.gravado = 27123.03
+    c.iva21 = 4733.93
+    c.iva10 = 1174.91
+    c.p_ibb = 474.65
+    c.p_iva = 806.83
+    c.total = 34313.35
+
+    print( c )
+    for linea in c.lineas_alicuotas():
+        print( linea )
