@@ -29,7 +29,7 @@ def procesar(p_anio, p_mes):
     with open(ARCHIVO, 'r', encoding='utf8') as csvarchivo:
         # Fecha;TCO;N. Comprobante;Cliente;CUIT;
         # Neto;IVA;Exento;IVA Otros;Percep;ImpInternos;ImpInt 1;
-        # Redondeo;Perc. I.V.A.;Tasa Vial;IVA 10.5;Total
+        # Redondeo;Perc. I.V.A.;Tasa Vial;IVA 105;Total
 
         entrada = csv.DictReader(csvarchivo, delimiter=';', quoting=csv.QUOTE_NONE)
         for reg in entrada:
