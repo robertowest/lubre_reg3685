@@ -158,7 +158,7 @@ def controlar_cuit(cuit):
     cuit = "".join([x for x in cuit if x.isdigit()])
     if cuit == "30710051859":   # si el CUIT es el de Lubre, lo cambiamos
         cuit = "20123456786"
-    return cuit.rjust(20, "0")
+    return cuit
 
 
 def normalizar_texto(s):

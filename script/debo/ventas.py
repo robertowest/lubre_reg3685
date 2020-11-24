@@ -41,9 +41,9 @@ def procesar(p_anio, p_mes):
                                        comprobante(reg['TCO'] + reg['N. Comprobante'][0:1]),
                                        reg['N. Comprobante'][2:6], 
                                        reg['N. Comprobante'][7:15])
-                        venta.hasta = reg['N. Comprobante'][-8:]
+                        venta.hasta = reg['N. Comprobante'][-8:]    # reg['N. Comprobante'][7:15]
                         venta.doc = reg['DOC']
-                        venta.cuit = reg['CUIT']
+                        venta.cuit = controlar_cuit(reg['CUIT'])
                         venta.nombre = normalizar_texto(reg['Cliente'])
                         venta.gravado = reg['Neto']   # + reg['Redondeo']
                         venta.no_gravado = reg['Exento']
@@ -175,6 +175,13 @@ def decimal(value):
     if type(value) == str:
         value = float(value.replace(",","."))
     return round(value, 2)
+
+
+def controlar_cuit(cuit):
+    cuit = "".join([x for x in cuit if x.isdigit()])
+    if cuit == "30710051859":   # si el CUIT es el de Lubre, lo cambiamos
+        cuit = "20123456786"
+    return cuit
 
 
 def normalizar_texto(s):

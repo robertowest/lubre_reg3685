@@ -36,7 +36,7 @@ def procesar(p_anio, p_mes):
                     venta = Ventas(reg['FECHA'], 
                                    comprobante(reg['TIPOCOMPROB'] + reg['LETRA']), 
                                    reg['TERMINAL'], reg['NUMERO'])
-                    venta.cuit = reg['CUIT']
+                    venta.cuit = controlar_cuit(reg['CUIT'])
                     venta.nombre = normalizar_texto(reg['NOMBRE'])
                     venta.gravado = reg['GRAVADO']
                     venta.no_gravado = reg['NOGRAVA']
@@ -143,10 +143,10 @@ def comprobante(tipo):
 
 
 def controlar_cuit(cuit):
-    cuit = "".join([x for x in self.__cuit if x.isdigit()])
+    cuit = "".join([x for x in cuit if x.isdigit()])
     if cuit == "30710051859":   # si el CUIT es el de Lubre, lo cambiamos
         cuit = "20123456786"
-    return cuit.rjust(20, "0")
+    return cuit
 
 
 def normalizar_texto(s):
