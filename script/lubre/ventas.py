@@ -139,7 +139,7 @@ def comprobante(tipo):
         "NDEB": "007",
         "NDEC": "012",
     }
-    return swiiher.get(tipo, "FACA")
+    return switcher.get(tipo, "FACA")
 
 
 def controlar_cuit(cuit):

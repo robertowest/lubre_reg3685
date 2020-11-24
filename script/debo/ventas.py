@@ -154,7 +154,6 @@ def validar_registro(reg, p_anio, p_mes):
     reg['IVA Otros']    = decimal(reg['IVA Otros'])
     reg['ImpInternos']  = decimal(reg['ImpInternos'])
     reg['ImpInt 1']     = decimal(reg['ImpInt 1'])
-    reg['Redondeo']     = decimal(reg['Redondeo'])
     reg['Percep']       = decimal(reg['Percep'])
     reg['Perc. I.V.A.'] = decimal(reg['Perc. I.V.A.'])
     reg['Total']        = decimal(reg['Total'])
