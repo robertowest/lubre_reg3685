@@ -186,3 +186,6 @@ dmypy.json
 *.bak
 *.tar.gz
 *.sh
+datos/
+salida/
+
