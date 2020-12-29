@@ -21,6 +21,8 @@ class Compras:
         self.itc = 0
         self.total = 0
         self.__alicuotas = 0
+        self.cuit_emisor = ""
+        self.nombre_emisor = ""
 
     def __str__(self):
         linea = [
@@ -28,27 +30,27 @@ class Compras:
             self.comprobante,
             self.terminal,
             self.numero,
-            "".rjust(16, " "),
+            "".rjust(16, " "),      # despacho de importación
             self.doc,
             self.cuit,
             self.nombre,
             self.total,
             self.no_gravado,
-            "0".rjust(15, "0"),
-            "0".rjust(15, "0"),
-            "0".rjust(15, "0"),
+            "0".rjust(15, "0"),     # importe de operaciones exentas
+            "0".rjust(15, "0"),     # importe percepciones o pagos a cuenta del IVA
+            "0".rjust(15, "0"),     # importe percepciones o pagos a cuenta de otros impuestos nacionales
             self.p_ibb,
             self.p_iva,
             self.itc,
             "PES",
             "0001000000",
             self.alicuotas,
-            "0",
-            "0".rjust(15, "0"),
-            "0".rjust(15, "0"),
-            "0".rjust(11, "0"),
-            "".rjust(30, " "),
-            "0".rjust(15, "0")
+            "0",                    # código de operación
+            self.cfc,
+            "0".rjust(15, "0"),     # otros tributos
+            self.cuit_emisor,
+            self.nombre_emisor,
+            "0".rjust(15, "0")      # IVA comisión
         ]
         return "|".join(linea)
 
@@ -239,6 +241,37 @@ class Compras:
     @alicuotas.setter
     def alicuotas(self, valor):
         self.__alicuotas = valor
+
+    @property
+    def cfc(self):
+        return format(abs(self.__cfc), ".2f").replace(".", "").rjust(15, "0")
+
+    @cfc.setter
+    def cfc(self, valor):
+        if type(valor) == str:
+            self.__cfc = round(float(valor), 2)
+        else:
+            self.__cfc = round(valor, 2)
+
+    @property
+    def cuit_emisor(self):
+        if self.__comprobante == "060" and self.__cuit_emisor == "":
+            self.__cuit_emisor = "30710051859"
+        return self.__cuit_emisor.rjust(11, "0")
+
+    @cuit_emisor.setter
+    def cuit_emisor(self, valor):
+        self.__cuit_emisor = valor[0:11].strip()
+
+    @property
+    def nombre_emisor(self):        
+        if self.__comprobante == "060" and self.__nombre_emisor == "":
+            self.__nombre_emisor = "LUBRE SRL"
+        return unidecode(self.__nombre_emisor).ljust(30, " ")
+
+    @nombre_emisor.setter
+    def nombre_emisor(self, valor):
+        self.__nombre_emisor = valor[0:30]
 
 
     # alicuotas

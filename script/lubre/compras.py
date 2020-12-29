@@ -19,12 +19,13 @@ def procesar(p_anio, p_mes):
     TOTAL = 0
     IVA = 0
     ERRORES = 0
+    AVISOS = 0
 
     file1 = open(ARCH_COMPRA, 'w', encoding='ascii', newline='\r\n')
     file2 = open(ARCH_ALICUOTA, 'w', encoding='ascii', newline='\r\n')
     log = open(LOG_ERROR, 'w', newline='\r\n')
 
-    with open(ARCHIVO, 'r', encoding='utf8') as csvarchivo:    
+    with open(ARCHIVO, 'r', encoding='utf8') as csvarchivo:
         # FECHA;TIPOCOMPROB;LETRA;TERMINAL;NUMERO;RAZON;IVA;CUIT;
         # GRAVADO;NOGRAVADO;IVA21;IVA10_5;PERC_IB;PERC_IVA;IVA27;TOTAL;
         # NETO;IDENC_MOV;IDPROVEDOR;IDFACPROVEDOR;IDPROVEDORTMP
@@ -46,19 +47,22 @@ def procesar(p_anio, p_mes):
                     compra.p_ibb = reg['PERC_IB']
                     compra.p_iva = reg['PERC_IVA']
                     compra.total = reg['TOTAL']
+                    compra.cfc = reg['IVA21'] + reg['IVA10_5'] + reg['IVA27']
 
                     file1.write(str(compra).replace('|', '') + '\n')
-                    TOTAL += reg['TOTAL']
-                    IVA += reg['IVA21'] + reg['IVA10_5'] + reg['IVA27']
                     for linea in compra.lineas_alicuotas():
                          file2.write(linea.replace('|', '') + '\n')
 
+                    IVA += reg['IVA21'] + reg['IVA10_5'] + reg['IVA27']
+                    TOTAL += reg['TOTAL']
+
                 else:
                     # raise Exception('registro inválido')
-                    log.write('IdFacProveedor %s - registro inválido\n' % reg['IDFACPROVEDOR'])
+                    log.write("Línea {} - línea no procesada\n".format(LINEA+2))
+                    AVISOS += 1
 
             except Exception as e:
-                log.write('IdFacProveedor %s - %s \n' % (reg['IDFACPROVEDOR'], str(e)))
+                log.write("Línea {} ({}) - {}\n".format(LINEA+2, reg['IDFACPROVEDOR'], str(e)))
                 ERRORES += 1
 
             LINEA += 1
@@ -73,11 +77,15 @@ def procesar(p_anio, p_mes):
         # '{:15,.2f}'.format(num).replace(',', '_').replace('.', ',').replace('_', '.')
         print('Total      : ' + '{:15,.2f}'.format(TOTAL))
         print('Total IVA  : ' + '{:15,.2f}'.format(IVA))
+
+        if AVISOS != 0:
+            print('\nExisten {} advertencias ({})'.format(AVISOS, LOG_ERROR))
+
     else:
         if ERRORES == 1:
-            print('Se encontró 1 error')
+            print('\nSe encontró 1 error')
         else:
-            print('Se encontraron {} errores'.format(ERRORES))
+            print('\nSe encontraron {} errores'.format(ERRORES))
         print('Revise el log de errores {}'.format(LOG_ERROR))
     input("\nPulse [enter] tecla para continuar ...")
 
@@ -88,7 +96,7 @@ def comprobante(tipo):
         "FACB": "006",
         "FACC": "011",
         "LSGA": "090",
-        "LPRA": "003",
+        "LPRA": "060",
         "NCRA": "003",
         "NCRB": "008",
         "NCRC": "013",

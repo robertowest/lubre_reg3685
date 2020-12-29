@@ -19,6 +19,7 @@ def procesar(p_anio, p_mes):
     TOTAL = 0
     IVA = 0
     ERRORES = 0
+    AVISOS = 0
 
     file1 = open(ARCH_COMPRA, 'w', encoding='ascii', newline='\r\n')
     file2 = open(ARCH_ALICUOTA, 'w', encoding='ascii', newline='\r\n')
@@ -52,15 +53,18 @@ def procesar(p_anio, p_mes):
                     compra.p_iva = reg['Per. IVA']
                     compra.itc = reg['Imp. Int.']
                     compra.total = reg['Total']
+                    compra.cfc = reg['IVA R.'] + reg['IVA 10.5'] + reg['IVA 27']
 
                     file1.write(str(compra).replace('|', '') + '\n')
-                    TOTAL += reg['Total']
-                    IVA += reg['IVA R.'] + reg['IVA 10.5'] + reg['IVA 27']
                     for linea in compra.lineas_alicuotas():
                             file2.write(linea.replace('|', '') + '\n')
 
+                    IVA += reg['IVA R.'] + reg['IVA 10.5'] + reg['IVA 27']
+                    TOTAL += reg['Total']
+
                 else:
                     log.write('%s - registro inválido\n' % reg['N. Comprobante'])
+                    AVISOS += 1
 
             except Exception as e:
                 log.write('%s - %s \n' % 
@@ -80,11 +84,15 @@ def procesar(p_anio, p_mes):
         # '{:15,.2f}'.format(num).replace(',', '_').replace('.', ',').replace('_', '.')
         print('Total      : ' + '{:15,.2f}'.format(TOTAL))
         print('Total IVA  : ' + '{:15,.2f}'.format(IVA))
+
+        if AVISOS != 0:
+            print('\nExisten {} advertencias ({})'.format(AVISOS, LOG_ERROR))
+
     else:
         if ERRORES == 1:
-            print('Se encontró 1 error')
+            print('\nSe encontró 1 error')
         else:
-            print('Se encontraron {} errores'.format(ERRORES))
+            print('\nSe encontraron {} errores'.format(ERRORES))
         print('Revise el log de errores {}'.format(LOG_ERROR))
     input("\nPulse [enter] tecla para continuar ...")
 
