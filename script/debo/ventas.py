@@ -172,6 +172,14 @@ def validar_registro(reg, p_anio, p_mes):
         # if reg['Total'] != round(total, 2):
         recalcular(reg)
 
+    # diferencia de totales
+    if reg['Total'] != round(
+        reg['Neto'] + reg['Exento'] + reg['IVA'] + 
+        reg['IVA 10.5'] + reg['IVA Otros'] + 
+        reg['ImpInternos'] + reg['ImpInt 1'] + 
+        reg['Percep'] + reg['Perc. I.V.A.'], 2):
+        recalcular(reg)
+
     return True
 
 
@@ -221,10 +229,10 @@ def recalcular(reg):
     if no_gravado != 0:
         reg['Neto'] = gravado
         reg['Exento'] = 0
-        if abs(no_gravado) > 1:
+        if abs(no_gravado) > 5:
             reg['Exento'] = no_gravado
         else:
-            # si son decimales los quitamos del gravado
+            # si la diferencia es menor a 5, lo tratamos como redondeo
             reg['Total'] = round(total - no_gravado, 2)
 
 
