@@ -39,8 +39,8 @@ def procesar(p_anio, p_mes):
                 if file1:
                     file1.close()
                     file2.close()
-                ARCH_COMPRA = RUTA + "/salida/debo_" + str(int(LINEA/400)+1) + "_ventas.txt"
-                ARCH_ALICUOTA = RUTA + "/salida/debo_" + str(int(LINEA/400)+1) + "_ventas_ali.txt"
+                ARCH_COMPRA = RUTA + "/salida/debo/ventas_" + str(int(LINEA/400)+1) + ".txt"
+                ARCH_ALICUOTA = RUTA + "/salida/debo/ventas_" + str(int(LINEA/400)+1) + "_ali.txt"
                 file1 = open(ARCH_COMPRA, 'w', encoding='ascii', newline='\r\n')
                 file2 = open(ARCH_ALICUOTA, 'w', encoding='ascii', newline='\r\n')
 

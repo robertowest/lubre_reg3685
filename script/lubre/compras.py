@@ -7,8 +7,8 @@ from script.afip.compras import Compras
 
 RUTA = os.getcwd()
 ARCHIVO = RUTA + '/datos/lubre_compras.csv'
-ARCH_COMPRA = RUTA + '/salida/lubre_01_compras.txt'
-ARCH_ALICUOTA = RUTA + '/salida/lubre_02_compras_ali.txt'
+ARCH_COMPRA = RUTA + '/salida/lubre/compras.txt'
+ARCH_ALICUOTA = RUTA + '/salida/lubre/compras_ali.txt'
 LOG_ERROR = RUTA + '/salida/error.log'
 
 def procesar(p_anio, p_mes):
