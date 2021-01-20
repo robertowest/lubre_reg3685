@@ -146,18 +146,21 @@ def validar_registro(reg, p_anio, p_mes):
         hasta = reg['N. Comprobante'][-8:]
         # if (int(hasta) - int(desde) > 500):
         #     reg['N. Comprobante'] = reg['N. Comprobante'].replace(desde, hasta)
-        if desde == "00000002":
+        if desde == "00000002" or desde > hasta:
             reg['N. Comprobante'] = reg['N. Comprobante'].replace(desde, hasta)
 
         # definimos el tipo de DOC según corresponda
         if reg['CUIT'] == "" or reg['Cliente'] == "":
-            if decimal(reg['Total']) > 1000:
-                reg['DOC'] = "96"
-                reg['CUIT'] = "12345678"
-                reg['Cliente'] = "Consumidor Final"
-            else:
-                reg['DOC'] = "99"
-                reg['Cliente'] = "Consumidor Final"
+            # if decimal(reg['Total']) > 10000:
+            #     reg['DOC'] = "96"
+            #     reg['CUIT'] = "12345678"
+            #     reg['Cliente'] = "Consumidor Final"
+            # else:
+            #     reg['DOC'] = "99"
+            #     reg['Cliente'] = "Consumidor Final"
+            reg['DOC'] = "99"
+            reg['CUIT'] = ""
+            reg['Cliente'] = "Consumidor Final"
 
     # comprobamos que la fecha sea válida y que esté en el mes correcto
     reg['Fecha'] = cadena_a_fecha(reg['Fecha'][0:10], p_mes, p_anio)
