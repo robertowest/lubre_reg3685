@@ -1,10 +1,11 @@
 import csv, operator
 import datetime
+import os
 
 from script.comunes.progressbar import lines_in_file, update_progress
 from script.afip.ventas import Ventas
 
-RUTA = '/home/roberto/Programacion/python/reg3685'
+RUTA = os.getcwd()
 ARCHIVO = RUTA + '/datos/lubre_ventas.csv'
 ARCH_COMPRA = RUTA + '/salida/lubre_03_ventas.txt'
 ARCH_ALICUOTA = RUTA + '/salida/lubre_04_ventas_ali.txt'

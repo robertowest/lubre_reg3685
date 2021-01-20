@@ -2,11 +2,12 @@
 #
 import csv, operator
 import datetime
+import os
 
 from script.comunes.progressbar import lines_in_file, update_progress
 from script.afip.ventas import Ventas
 
-RUTA = '/home/roberto/Programacion/python/reg3685'
+RUTA = os.getcwd()
 ARCHIVO = RUTA + '/datos/debo_ventas.csv'
 ARCH_COMPRA = RUTA + '/salida/debo_03_ventas.txt'
 ARCH_ALICUOTA = RUTA + '/salida/debo_04_ventas_ali.txt'
@@ -23,8 +24,7 @@ def procesar(p_anio, p_mes):
     ERRORES = 0
     AVISOS = 0
 
-    file1 = open(ARCH_COMPRA, 'w', encoding='ascii', newline='\r\n')
-    file2 = open(ARCH_ALICUOTA, 'w', encoding='ascii', newline='\r\n')
+    file1 = None
     log = open(LOG_ERROR, 'w', newline='\r\n')
 
     with open(ARCHIVO, 'r', encoding='utf8') as csvarchivo:
@@ -34,6 +34,16 @@ def procesar(p_anio, p_mes):
 
         entrada = csv.DictReader(csvarchivo, delimiter=';', quoting=csv.QUOTE_NONE)
         for reg in entrada:
+            # modificado para crear archivos de ventas con 400 lineas 
+            if (LINEA/400) == int(LINEA/400):
+                if file1:
+                    file1.close()
+                    file2.close()
+                ARCH_COMPRA = RUTA + "/salida/debo_" + str(int(LINEA/400)+1) + "_ventas.txt"
+                ARCH_ALICUOTA = RUTA + "/salida/debo_" + str(int(LINEA/400)+1) + "_ventas_ali.txt"
+                file1 = open(ARCH_COMPRA, 'w', encoding='ascii', newline='\r\n')
+                file2 = open(ARCH_ALICUOTA, 'w', encoding='ascii', newline='\r\n')
+
             try:
                 if (reg['Cliente'] != '**ANULADA**'):
                     if validar_registro(reg, p_anio, p_mes):
