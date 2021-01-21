@@ -10,10 +10,10 @@ ARCHIVO = RUTA + '/datos/lubre_ventas.csv'
 ARCH_COMPRA = RUTA + '/salida/lubre/ventas.txt'
 ARCH_ALICUOTA = RUTA + '/salida/lubre/ventas_ali.txt'
 LOG_ERROR = RUTA + '/salida/error.log'
+RESUMEN = RUTA + '/salida/resumen.txt'
 
 def procesar(p_anio, p_mes):
     print("leyendo archivo lubre_ventas.csv")
-    open(LOG_ERROR, 'a').close()
 
     LINEAS = lines_in_file(ARCHIVO)
     LINEA = 0
@@ -24,7 +24,8 @@ def procesar(p_anio, p_mes):
 
     file1 = open(ARCH_COMPRA, 'w', encoding='ascii', newline='\r\n')
     file2 = open(ARCH_ALICUOTA, 'w', encoding='ascii', newline='\r\n')
-    log = open(LOG_ERROR, 'w', newline='\r\n')
+    log = open(LOG_ERROR, 'a', newline='\r\n')
+    log.write("Lubre Ventas ------------------------------------\n")
 
     with open(ARCHIVO, 'r', encoding='utf8') as csvarchivo:
         # FECHA;TIPOCOMPROB;LETRA;TERMINAL;NUMERO;IVA;CUIT;NOMBRE;
@@ -79,6 +80,13 @@ def procesar(p_anio, p_mes):
         print('Total IVA  : ' + '{:15,.2f}'.format(IVA))
         if AVISOS != 0:
             print('\nExisten {} advertencias ({})'.format(AVISOS, LOG_ERROR))
+        # agregamos información al resumen
+        log = open(RESUMEN, 'a', newline='\r\n')
+        log.write("Lubre Ventas\n")
+        log.write("Total    :{:15,.2f}\n".format(TOTAL))
+        log.write("Total IVA:{:15,.2f}\n".format(IVA))
+        log.write("\n")
+        log.close()
     else:
         if ERRORES == 1:
             print('\nSe encontró 1 error')

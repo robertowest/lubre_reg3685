@@ -10,10 +10,10 @@ ARCHIVO = RUTA + '/datos/debo_compras.csv'
 ARCH_COMPRA = RUTA + '/salida/debo/compras.txt'
 ARCH_ALICUOTA = RUTA + '/salida/debo/compras_ali.txt'
 LOG_ERROR = RUTA + '/salida/error.log'
+RESUMEN = RUTA + '/salida/resumen.txt'
 
 def procesar(p_anio, p_mes):
     print("leyendo archivo debo_compras.csv")
-    open(LOG_ERROR, 'a').close()
 
     LINEAS = lines_in_file(ARCHIVO)
     LINEA = 0
@@ -24,7 +24,8 @@ def procesar(p_anio, p_mes):
 
     file1 = open(ARCH_COMPRA, 'w', encoding='ascii', newline='\r\n')
     file2 = open(ARCH_ALICUOTA, 'w', encoding='ascii', newline='\r\n')
-    log = open(LOG_ERROR, 'w', newline='\r\n')
+    log = open(LOG_ERROR, 'a', newline='\r\n')
+    log.write("DEBO Compras ------------------------------------\n")
 
     with open(ARCHIVO, 'r', encoding='utf8') as csvarchivo:
         # Fecha;TCO;N. Comprobante;Proveedor;CUIT;
@@ -85,9 +86,15 @@ def procesar(p_anio, p_mes):
         # '{:15,.2f}'.format(num).replace(',', '_').replace('.', ',').replace('_', '.')
         print('Total      : ' + '{:15,.2f}'.format(TOTAL))
         print('Total IVA  : ' + '{:15,.2f}'.format(IVA))
-
         if AVISOS != 0:
             print('\nExisten {} advertencias ({})'.format(AVISOS, LOG_ERROR))
+        # agregamos información al resumen
+        log = open(RESUMEN, 'a', newline='\r\n')
+        log.write("DEBO Compras\n")
+        log.write("Total    :{:15,.2f}\n".format(TOTAL))
+        log.write("Total IVA:{:15,.2f}\n".format(IVA))
+        log.write("\n")
+        log.close()
 
     else:
         if ERRORES == 1:

@@ -7,13 +7,13 @@ from script.afip.compras import Compras
 
 RUTA = os.getcwd()
 ARCHIVO = RUTA + '/datos/lubre_compras.csv'
-ARCH_COMPRA = RUTA + '/salida/lubre/compras.txt'
+ARCH_VENTA = RUTA + '/salida/lubre/compras.txt'
 ARCH_ALICUOTA = RUTA + '/salida/lubre/compras_ali.txt'
 LOG_ERROR = RUTA + '/salida/error.log'
+RESUMEN = RUTA + '/salida/resumen.txt'
 
 def procesar(p_anio, p_mes):
     print("leyendo archivo lubre_compras.csv")
-    open(LOG_ERROR, 'a').close()
 
     LINEAS = lines_in_file(ARCHIVO)
     LINEA = 0
@@ -22,9 +22,10 @@ def procesar(p_anio, p_mes):
     ERRORES = 0
     AVISOS = 0
 
-    file1 = open(ARCH_COMPRA, 'w', encoding='ascii', newline='\r\n')
+    file1 = open(ARCH_VENTA, 'w', encoding='ascii', newline='\r\n')
     file2 = open(ARCH_ALICUOTA, 'w', encoding='ascii', newline='\r\n')
-    log = open(LOG_ERROR, 'w', newline='\r\n')
+    log = open(LOG_ERROR, 'a', newline='\r\n')
+    log.write("Lubre Compras -----------------------------------\n")
 
     with open(ARCHIVO, 'r', encoding='utf8') as csvarchivo:
         # FECHA;TIPOCOMPROB;LETRA;TERMINAL;NUMERO;RAZON;IVA;CUIT;
@@ -78,9 +79,15 @@ def procesar(p_anio, p_mes):
         # '{:15,.2f}'.format(num).replace(',', '_').replace('.', ',').replace('_', '.')
         print('Total      : ' + '{:15,.2f}'.format(TOTAL))
         print('Total IVA  : ' + '{:15,.2f}'.format(IVA))
-
         if AVISOS != 0:
             print('\nExisten {} advertencias ({})'.format(AVISOS, LOG_ERROR))
+        # agregamos información al resumen
+        log = open(RESUMEN, 'a', newline='\r\n')
+        log.write("Lubre Compras\n")
+        log.write("Total    :{:15,.2f}\n".format(TOTAL))
+        log.write("Total IVA:{:15,.2f}\n".format(IVA))
+        log.write("\n")
+        log.close()
 
     else:
         if ERRORES == 1:

@@ -9,13 +9,12 @@ from script.afip.ventas import Ventas
 
 RUTA = os.getcwd()
 ARCHIVO = RUTA + '/datos/debo_ventas.csv'
-ARCH_COMPRA = RUTA + '/salida/debo/ventas.txt'
-ARCH_ALICUOTA = RUTA + '/salida/debo/ventas_ali.txt'
 LOG_ERROR = RUTA + '/salida/error.log'
+RESUMEN = RUTA + '/salida/resumen.txt'
+DIVIDIR = False
 
 def procesar(p_anio, p_mes):
     print("leyendo archivo debo_ventas.csv")
-    open(LOG_ERROR, 'a').close()
 
     LINEAS = lines_in_file(ARCHIVO)
     LINEA = 0
@@ -25,7 +24,8 @@ def procesar(p_anio, p_mes):
     AVISOS = 0
 
     file1 = None
-    log = open(LOG_ERROR, 'w', newline='\r\n')
+    log = open(LOG_ERROR, 'a', newline='\r\n')
+    log.write("DEBO Ventas -------------------------------------\n")
 
     with open(ARCHIVO, 'r', encoding='utf8') as csvarchivo:
         # Fecha;TCO;N. Comprobante;Cliente;CUIT;
@@ -34,14 +34,21 @@ def procesar(p_anio, p_mes):
 
         entrada = csv.DictReader(csvarchivo, delimiter=';', quoting=csv.QUOTE_NONE)
         for reg in entrada:
-            # modificado para crear archivos de ventas con 400 lineas 
-            if (LINEA/400) == int(LINEA/400):
-                if file1:
-                    file1.close()
-                    file2.close()
-                ARCH_COMPRA = RUTA + "/salida/debo/ventas_" + str(int(LINEA/400)+1) + ".txt"
-                ARCH_ALICUOTA = RUTA + "/salida/debo/ventas_" + str(int(LINEA/400)+1) + "_ali.txt"
-                file1 = open(ARCH_COMPRA, 'w', encoding='ascii', newline='\r\n')
+            if DIVIDIR:
+                # dividimos el archivo de ventas en archivos de 400 líneas
+                # para poder controlar mejor los errores de carga
+                if (LINEA/400) == int(LINEA/400):
+                    if file1:
+                        file1.close()
+                        file2.close()
+                    ARCH_VENTA = RUTA + "/salida/debo/ventas_" + str(int(LINEA/400)+1) + ".txt"
+                    ARCH_ALICUOTA = RUTA + "/salida/debo/ventas_" + str(int(LINEA/400)+1) + "_ali.txt"
+                    file1 = open(ARCH_VENTA, 'w', encoding='ascii', newline='\r\n')
+                    file2 = open(ARCH_ALICUOTA, 'w', encoding='ascii', newline='\r\n')
+            elif not file1:
+                ARCH_VENTA = RUTA + '/salida/debo/ventas.txt'
+                ARCH_ALICUOTA = RUTA + '/salida/debo/ventas_ali.txt'
+                file1 = open(ARCH_VENTA, 'w', encoding='ascii', newline='\r\n')
                 file2 = open(ARCH_ALICUOTA, 'w', encoding='ascii', newline='\r\n')
 
             try:
@@ -97,6 +104,13 @@ def procesar(p_anio, p_mes):
         print('Total IVA  : ' + '{:15,.2f}'.format(IVA))
         if AVISOS != 0:
             print('\nExisten {} advertencias ({})'.format(AVISOS, LOG_ERROR))
+        # agregamos información al resumen
+        log = open(RESUMEN, 'a', newline='\r\n')
+        log.write("DEBO Ventas\n")
+        log.write("Total    :{:15,.2f}\n".format(TOTAL))
+        log.write("Total IVA:{:15,.2f}\n".format(IVA))
+        log.write("\n")
+        log.close()
     else:
         if ERRORES == 1:
             print('\nSe encontró 1 error')
@@ -141,26 +155,21 @@ def validar_registro(reg, p_anio, p_mes):
     reg['DOC'] = "80"
     if reg['N. Comprobante'][:1] == "B":
         # corregimos los comprobantes duplicados, el listado de DEBO tiene errores al 
-        # agrupar los comprobantes 
+        # agrupar los comprobantes. 
         desde = reg['N. Comprobante'][7:15]
         hasta = reg['N. Comprobante'][-8:]
-        # if (int(hasta) - int(desde) > 500):
-        #     reg['N. Comprobante'] = reg['N. Comprobante'].replace(desde, hasta)
-        if desde == "00000002" or desde > hasta:
+        if int(desde) == 2 or int(desde) > int(hasta):
             reg['N. Comprobante'] = reg['N. Comprobante'].replace(desde, hasta)
 
         # definimos el tipo de DOC según corresponda
         if reg['CUIT'] == "" or reg['Cliente'] == "":
+            reg['DOC'] = "99"
+            reg['CUIT'] = ""
+            reg['Cliente'] = "Consumidor Final"
             # if decimal(reg['Total']) > 10000:
             #     reg['DOC'] = "96"
             #     reg['CUIT'] = "12345678"
             #     reg['Cliente'] = "Consumidor Final"
-            # else:
-            #     reg['DOC'] = "99"
-            #     reg['Cliente'] = "Consumidor Final"
-            reg['DOC'] = "99"
-            reg['CUIT'] = ""
-            reg['Cliente'] = "Consumidor Final"
 
     # comprobamos que la fecha sea válida y que esté en el mes correcto
     reg['Fecha'] = cadena_a_fecha(reg['Fecha'][0:10], p_mes, p_anio)

@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import os
 import datetime
+import os 
+import shutil
+
 
 def menu():
     """
@@ -18,8 +20,37 @@ def menu():
     print("| 0 - Salir                |")
     print("+--------------------------+")
 
+def eliminar_archivo(file_name):
+    try:
+        os.remove(file_name)
+    except:
+        pass
+
+def vaciar_carpeta(folder_path):
+    for root, dirs, files in os.walk(folder_path): 
+        for f in files: 
+            os.unlink(os.path.join(root, f)) 
+        # for d in dirs: 
+        #     shutil.rmtree(os.path.join(root, d))
+
+def eliminar_carpeta(folder_path):
+    for file_object in os.listdir(folder_path): 
+        file_object_path = os.path.join(folder_path, file_object) 
+        if os.path.isfile(file_object_path): 
+            os.unlink(file_object_path) 
+        else: 
+            shutil.rmtree(file_object_path)
+
 
 if __name__ == "__main__":
+    # # eliminamos el contenido de los archivos
+    # log = open(os.getcwd() + "/salida/error.log", 'w', newline='\r\n').close()
+    # log = open(os.getcwd() + "/salida/resumen.txt", 'w', newline='\r\n').close()
+    eliminar_archivo(os.getcwd() + "/salida/error.log")
+    eliminar_archivo(os.getcwd() + "/salida/resumen.txt")
+    vaciar_carpeta(os.getcwd() + "/salida/debo")
+    vaciar_carpeta(os.getcwd() + "/salida/lubre")
+
     os.system('clear')
     ANIO = int(input("Ingrese el año de procesamiento (%s) : " % datetime.datetime.now().year) or datetime.datetime.now().year)
     MES = int(input("Ingrese número de mes (%s) : " % datetime.datetime.now().month) or datetime.datetime.now().month)
