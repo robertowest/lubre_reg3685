@@ -9,7 +9,7 @@ class Ventas:
         self.comprobante = comprobante
         self.terminal = terminal
         self.numero = numero
-        self.hasta = numero
+        self.hasta = numero[-8:]
         self.doc = doc
         self.condicion_iva = "I"
         self.cuit = ""

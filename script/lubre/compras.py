@@ -36,8 +36,8 @@ def procesar(p_anio, p_mes):
         for reg in entrada:
             try:
                 if validar_registro(reg, p_mes, p_anio):
-                    compra = Compras(reg['FECHA'], 
-                                     comprobante(reg['TIPOCOMPROB'] + reg['LETRA']), 
+                    compra = Compras(reg['FECHA'],
+                                     comprobante(reg['TIPOCOMPROB'] + reg['LETRA']),
                                      reg['TERMINAL'], reg['NUMERO'])
                     compra.cuit = controlar_cuit(reg['CUIT'])
                     compra.nombre = normalizar_texto(reg['RAZON'])
@@ -112,7 +112,7 @@ def comprobante(tipo):
         "NDEB": "007",
         "NDEC": "012",
     }
-    return switcher.get(tipo, "FACA")        
+    return switcher.get(tipo, "FACA")
 
 
 def validar_registro(reg, p_mes, p_anio):
@@ -209,3 +209,4 @@ def recalcular(reg):
             # si son decimales los quitamos del gravado
             reg['GRAVADO'] = gravado - no_gravado
             reg['NOGRAVADO'] = 0
+

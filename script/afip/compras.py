@@ -7,7 +7,7 @@ class Compras:
         self.fecha = fecha
         self.comprobante = comprobante
         self.terminal = terminal
-        self.numero = numero
+        self.numero = numero[-8:]
         self.doc = doc
         self.cuit = ""
         self.nombre = ""
