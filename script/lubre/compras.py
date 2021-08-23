@@ -209,4 +209,5 @@ def recalcular(reg):
             # si son decimales los quitamos del gravado
             reg['GRAVADO'] = gravado - no_gravado
             reg['NOGRAVADO'] = 0
-
+    elif no_gravado != reg['NOGRAVADO']:
+        reg['NOGRAVADO'] = no_gravado
