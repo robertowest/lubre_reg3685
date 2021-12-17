@@ -112,7 +112,7 @@ def comprobante(tipo):
         "NDEB": "007",
         "NDEC": "012",
     }
-    return switcher.get(tipo, "FACA")
+    return switcher.get(tipo, "001")
 
 
 def validar_registro(reg, p_mes, p_anio):

@@ -148,7 +148,7 @@ def comprobante(tipo):
         "TIA": "081",
         "TIB": "082",
     }
-    return swiiher.get(tipo, "TIA")   
+    return swiiher.get(tipo, "081")   
 
 
 def validar_registro(reg, p_anio, p_mes):

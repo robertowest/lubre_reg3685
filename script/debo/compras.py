@@ -170,7 +170,7 @@ def comprobante(tipo):
         "TIA": "081",
         "TIB": "082",
     }
-    return switcher.get(tipo, "FTA") 
+    return switcher.get(tipo, "001") 
 
 
 def controlar_cuit(cuit):
