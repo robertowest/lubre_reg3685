@@ -31,7 +31,6 @@ def procesar(p_anio, p_mes):
         # Fecha;TCO;N. Comprobante;Cliente;CUIT;
         # Neto;IVA;Exento;IVA Otros;Percep;ImpInternos;ImpInt 1;
         # Redondeo;Perc. I.V.A.;Tasa Vial;IVA 105;Total
-
         entrada = csv.DictReader(csvarchivo, delimiter=';', quoting=csv.QUOTE_NONE)
         for reg in entrada:
             if DIVIDIR:

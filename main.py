@@ -11,14 +11,16 @@ def menu():
     Función que limpia la pantalla y muestra nuevamente el menu
     """
     os.system('clear') # NOTA para windows tienes que cambiar clear por cls
-    print("+---------- Menú ----------+")
-    print("| 1 - Lubre Compras        |")
-    print("| 2 - Lubre Ventas         |")
-    print("| 3 - Debo  Compras        |")
-    print("| 4 - Debo  Ventas         |")
-    print("+--------------------------+")
-    print("| 0 - Salir                |")
-    print("+--------------------------+")
+    print("+------------------------------------+")
+    print("| 1 - Lubre Compras                  |")
+    print("| 2 - Lubre Ventas                   |")
+    print("| 3 - Debo  Compras                  |")
+    print("| 4 - Debo  Ventas                   |")
+    print("+------------------------------------+")
+    print("| 5 - Comprobar CUIT de DEBO Ventas  |")
+    print("+------------------------------------+")
+    print("| 0 - Salir                          |")
+    print("+------------------------------------+")
 
 def eliminar_archivo(file_name):
     try:
@@ -83,6 +85,11 @@ if __name__ == "__main__":
             os.system('clear')
             from script.debo import ventas
             ventas.procesar(ANIO, MES)
+
+        elif opcionMenu == "5":
+            os.system('clear')
+            from script.debo.utiles import comprobar_cuit
+            comprobar_cuit(None, None)
 
         elif opcionMenu == "0":
             os.system('clear')
