@@ -11,7 +11,7 @@ RUTA = os.getcwd()
 ARCHIVO = RUTA + '/datos/debo_ventas.csv'
 LOG_ERROR = RUTA + '/salida/error.log'
 RESUMEN = RUTA + '/salida/resumen.txt'
-DIVIDIR = True
+DIVIDIR = False
 
 def procesar(p_anio, p_mes):
     print("leyendo archivo debo_ventas.csv")
